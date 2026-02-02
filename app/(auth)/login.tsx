@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
+import { makeRedirectUri } from 'expo-auth-session'
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -20,15 +21,18 @@ export default function LoginScreen() {
   const router = useRouter();
 
   const handleSendMagicLink = async () => {
+
+  const redirectTo = makeRedirectUri()
+
     if (!email.trim()) return;
 
     setLoading(true);
     const { error } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
-      options: {
-        emailRedirectTo: 'salty://auth/verify',
-      },
-    });
+    email: 'valid.email@supabase.io',
+    options: {
+      emailRedirectTo: redirectTo,
+    },
+  })
 
     setLoading(false);
 
