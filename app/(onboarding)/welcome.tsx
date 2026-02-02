@@ -12,7 +12,7 @@ export default function WelcomeScreen() {
     <SafeAreaView className="flex-1 bg-stone-50 dark:bg-slate-950">
       <View className="flex-1 px-6">
         <View className="pt-8">
-          <ProgressDots total={4} current={0} />
+          <ProgressDots total={6} current={0} />
         </View>
 
         <View className="flex-1 items-center justify-center">

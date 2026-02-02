@@ -1,23 +1,32 @@
 import { create } from 'zustand';
+import * as SecureStore from 'expo-secure-store';
 import { DietaryRestriction } from '../lib/types';
+
+const ONBOARDING_KEY = 'salty_onboarding';
 
 interface OnboardingState {
   goal: string;
   weekly_budget: number;
   skill_level: string;
   dietary_restrictions: DietaryRestriction[];
+  onboardingComplete: boolean;
+  isLoaded: boolean;
   setGoal: (goal: string) => void;
   setBudget: (budget: number) => void;
   setSkillLevel: (level: string) => void;
   toggleDietaryRestriction: (restriction: DietaryRestriction) => void;
+  markComplete: () => Promise<void>;
+  loadOnboardingState: () => Promise<void>;
   reset: () => void;
 }
 
-export const useOnboardingStore = create<OnboardingState>((set) => ({
+export const useOnboardingStore = create<OnboardingState>((set, get) => ({
   goal: '',
   weekly_budget: 50,
   skill_level: '',
   dietary_restrictions: [],
+  onboardingComplete: false,
+  isLoaded: false,
   setGoal: (goal) => set({ goal }),
   setBudget: (weekly_budget) => set({ weekly_budget }),
   setSkillLevel: (skill_level) => set({ skill_level }),
@@ -27,6 +36,38 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
         ? state.dietary_restrictions.filter((r) => r !== restriction)
         : [...state.dietary_restrictions, restriction],
     })),
+  markComplete: async () => {
+    const { goal, weekly_budget, skill_level, dietary_restrictions } = get();
+    const data = JSON.stringify({
+      goal,
+      weekly_budget,
+      skill_level,
+      dietary_restrictions,
+      onboardingComplete: true,
+    });
+    await SecureStore.setItemAsync(ONBOARDING_KEY, data);
+    set({ onboardingComplete: true });
+  },
+  loadOnboardingState: async () => {
+    try {
+      const raw = await SecureStore.getItemAsync(ONBOARDING_KEY);
+      if (raw) {
+        const data = JSON.parse(raw);
+        set({
+          goal: data.goal ?? '',
+          weekly_budget: data.weekly_budget ?? 50,
+          skill_level: data.skill_level ?? '',
+          dietary_restrictions: data.dietary_restrictions ?? [],
+          onboardingComplete: data.onboardingComplete ?? false,
+          isLoaded: true,
+        });
+      } else {
+        set({ isLoaded: true });
+      }
+    } catch {
+      set({ isLoaded: true });
+    }
+  },
   reset: () =>
     set({
       goal: '',

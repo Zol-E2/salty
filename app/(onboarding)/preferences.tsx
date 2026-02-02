@@ -25,7 +25,7 @@ export default function PreferencesScreen() {
     <SafeAreaView className="flex-1 bg-stone-50 dark:bg-slate-950">
       <ScrollView className="flex-1 px-6" showsVerticalScrollIndicator={false}>
         <View className="pt-8 mb-8">
-          <ProgressDots total={4} current={2} />
+          <ProgressDots total={6} current={2} />
         </View>
 
         <Text className="text-2xl font-bold text-slate-900 dark:text-white mb-2">

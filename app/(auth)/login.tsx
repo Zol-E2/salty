@@ -9,10 +9,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { makeRedirectUri } from 'expo-auth-session';
 import { supabase } from '../../lib/supabase';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
-import { makeRedirectUri } from 'expo-auth-session'
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -21,18 +21,17 @@ export default function LoginScreen() {
   const router = useRouter();
 
   const handleSendMagicLink = async () => {
-
-  const redirectTo = makeRedirectUri()
-
     if (!email.trim()) return;
+
+    const redirectTo = makeRedirectUri();
 
     setLoading(true);
     const { error } = await supabase.auth.signInWithOtp({
-    email: 'valid.email@supabase.io',
-    options: {
-      emailRedirectTo: redirectTo,
-    },
-  })
+      email: email.trim(),
+      options: {
+        emailRedirectTo: redirectTo,
+      },
+    });
 
     setLoading(false);
 
@@ -84,9 +83,16 @@ export default function LoginScreen() {
                 className="mb-4"
               />
 
-              <Text className="text-sm text-slate-400 dark:text-slate-500 text-center">
+              <Text className="text-sm text-slate-400 dark:text-slate-500 text-center mb-6">
                 We'll send you a sign-in link. No password needed.
               </Text>
+
+              <Button
+                title="Skip for now"
+                onPress={() => router.replace('/(tabs)/calendar')}
+                variant="ghost"
+                size="sm"
+              />
             </View>
           ) : (
             <View className="items-center">

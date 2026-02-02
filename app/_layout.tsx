@@ -4,30 +4,57 @@ import { Slot, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useColorScheme, View, ActivityIndicator } from 'react-native';
+import * as Linking from 'expo-linking';
+import * as QueryParams from 'expo-auth-session/build/QueryParams';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../stores/authStore';
 import { useThemeStore } from '../stores/themeStore';
+import { useOnboardingStore } from '../stores/onboardingStore';
 
 const queryClient = new QueryClient();
 
-function AuthGuard() {
-  const { session, isLoading } = useAuthStore();
+const createSessionFromUrl = async (url: string) => {
+  const { params, errorCode } = QueryParams.getQueryParams(url);
+
+  if (errorCode) {
+    console.error('Deep link error:', errorCode);
+    return null;
+  }
+
+  const { access_token, refresh_token } = params;
+
+  if (!access_token) return null;
+
+  const { data, error } = await supabase.auth.setSession({
+    access_token,
+    refresh_token,
+  });
+
+  if (error) {
+    console.error('setSession error:', error.message);
+    return null;
+  }
+
+  return data.session;
+};
+
+function FlowGuard() {
+  const { onboardingComplete, isLoaded } = useOnboardingStore();
   const segments = useSegments();
   const router = useRouter();
 
   useEffect(() => {
-    if (isLoading) return;
+    if (!isLoaded) return;
 
-    const inAuthGroup = segments[0] === '(auth)';
+    const inOnboarding = segments[0] === '(onboarding)';
+    const inAuth = segments[0] === '(auth)';
 
-    if (!session && !inAuthGroup) {
-      router.replace('/(auth)/login');
-    } else if (session && inAuthGroup) {
-      router.replace('/');
+    if (!onboardingComplete && !inOnboarding) {
+      router.replace('/(onboarding)/welcome');
     }
-  }, [session, isLoading, segments]);
+  }, [onboardingComplete, isLoaded, segments]);
 
-  if (isLoading) {
+  if (!isLoaded) {
     return (
       <View className="flex-1 items-center justify-center bg-stone-50 dark:bg-slate-950">
         <ActivityIndicator size="large" color="#10B981" />
@@ -42,6 +69,7 @@ export default function RootLayout() {
   const setSession = useAuthStore((s) => s.setSession);
   const themeMode = useThemeStore((s) => s.mode);
   const loadSavedTheme = useThemeStore((s) => s.loadSavedTheme);
+  const loadOnboardingState = useOnboardingStore((s) => s.loadOnboardingState);
   const systemScheme = useColorScheme();
 
   const isDark =
@@ -49,8 +77,23 @@ export default function RootLayout() {
 
   useEffect(() => {
     loadSavedTheme();
+    loadOnboardingState();
   }, []);
 
+  // Listen for deep link URLs (magic link callback)
+  useEffect(() => {
+    Linking.getInitialURL().then((url) => {
+      if (url) createSessionFromUrl(url);
+    });
+
+    const subscription = Linking.addEventListener('url', ({ url }) => {
+      createSessionFromUrl(url);
+    });
+
+    return () => subscription.remove();
+  }, []);
+
+  // Listen for auth state changes
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -69,7 +112,7 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <View className={`flex-1 ${isDark ? 'dark' : ''}`}>
         <StatusBar style={isDark ? 'light' : 'dark'} />
-        <AuthGuard />
+        <FlowGuard />
       </View>
     </QueryClientProvider>
   );

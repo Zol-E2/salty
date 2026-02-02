@@ -6,15 +6,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { Button } from '../../components/ui/Button';
 import { ProgressDots } from '../../components/onboarding/ProgressDots';
 import { useOnboardingStore } from '../../stores/onboardingStore';
-import { useAuthStore } from '../../stores/authStore';
-import { supabase } from '../../lib/supabase';
 import { GOALS, SKILL_LEVELS, DIETARY_OPTIONS } from '../../lib/constants';
 
 export default function CompleteScreen() {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
-  const session = useAuthStore((s) => s.session);
-  const { goal, weekly_budget, skill_level, dietary_restrictions } =
+  const { goal, weekly_budget, skill_level, dietary_restrictions, markComplete } =
     useOnboardingStore();
 
   const goalLabel = GOALS.find((g) => g.key === goal)?.label ?? goal;
@@ -25,35 +22,22 @@ export default function CompleteScreen() {
   );
 
   const handleFinish = async () => {
-    if (!session) return;
-
     setSaving(true);
-    const { error } = await supabase.from('profiles').upsert({
-      id: session.user.id,
-      email: session.user.email,
-      goal,
-      weekly_budget,
-      skill_level,
-      dietary_restrictions,
-      onboarding_complete: true,
-      updated_at: new Date().toISOString(),
-    });
-
-    setSaving(false);
-
-    if (error) {
+    try {
+      await markComplete();
+      router.push('/(onboarding)/paywall');
+    } catch {
       Alert.alert('Error', 'Failed to save your preferences. Please try again.');
-      return;
+    } finally {
+      setSaving(false);
     }
-
-    router.replace('/(tabs)/calendar');
   };
 
   return (
     <SafeAreaView className="flex-1 bg-stone-50 dark:bg-slate-950">
       <View className="flex-1 px-6">
         <View className="pt-8 mb-8">
-          <ProgressDots total={4} current={3} />
+          <ProgressDots total={6} current={3} />
         </View>
 
         <Text className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
@@ -64,11 +48,7 @@ export default function CompleteScreen() {
         </Text>
 
         <View className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 mb-6">
-          <SummaryRow
-            icon="flag-outline"
-            label="Goal"
-            value={goalLabel}
-          />
+          <SummaryRow icon="flag-outline" label="Goal" value={goalLabel} />
           <SummaryRow
             icon="wallet-outline"
             label="Weekly budget"
@@ -91,7 +71,7 @@ export default function CompleteScreen() {
 
         <View className="pb-8">
           <Button
-            title="Start Planning"
+            title="Continue"
             onPress={handleFinish}
             loading={saving}
             size="lg"

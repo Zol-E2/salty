@@ -1,33 +1,11 @@
 import { Redirect } from 'expo-router';
-import { useAuthStore } from '../stores/authStore';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '../lib/supabase';
+import { useOnboardingStore } from '../stores/onboardingStore';
 import { View, ActivityIndicator } from 'react-native';
-import { Profile } from '../lib/types';
 
 export default function Index() {
-  const session = useAuthStore((s) => s.session);
+  const { onboardingComplete, isLoaded } = useOnboardingStore();
 
-  const { data: profile, isLoading } = useQuery({
-    queryKey: ['profile', session?.user?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', session!.user.id)
-        .single();
-
-      if (error) throw error;
-      return data as Profile;
-    },
-    enabled: !!session,
-  });
-
-  if (!session) {
-    return <Redirect href="/(auth)/login" />;
-  }
-
-  if (isLoading) {
+  if (!isLoaded) {
     return (
       <View className="flex-1 items-center justify-center bg-stone-50 dark:bg-slate-950">
         <ActivityIndicator size="large" color="#10B981" />
@@ -35,7 +13,7 @@ export default function Index() {
     );
   }
 
-  if (!profile?.onboarding_complete) {
+  if (!onboardingComplete) {
     return <Redirect href="/(onboarding)/welcome" />;
   }
 
