@@ -32,8 +32,8 @@ export default function VerifyScreen() {
   }, [cooldown]);
 
   const handleVerify = async () => {
-    if (code.length !== 6) {
-      setError('Please enter the 6-digit code');
+    if (code.length !== 8) {
+      setError('Please enter the 8-digit code');
       return;
     }
 
@@ -90,7 +90,7 @@ export default function VerifyScreen() {
               Check your email
             </Text>
             <Text className="text-base text-slate-500 dark:text-slate-400 text-center">
-              We sent a 6-digit code to{'\n'}
+              We sent an 8-digit code to{'\n'}
               <Text className="font-semibold text-slate-700 dark:text-slate-300">
                 {email}
               </Text>

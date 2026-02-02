@@ -75,7 +75,7 @@ export default function LoginScreen() {
             />
 
             <Text className="text-sm text-slate-400 dark:text-slate-500 text-center mb-6">
-              We'll send you a 6-digit code. No password needed.
+              We'll send you an 8-digit code. No password needed.
             </Text>
 
             <Button
