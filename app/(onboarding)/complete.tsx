@@ -51,7 +51,7 @@ export default function CompleteScreen() {
           <SummaryRow icon="flag-outline" label="Goal" value={goalLabel} />
           <SummaryRow
             icon="wallet-outline"
-            label="Weekly budget"
+            label="Your budget"
             value={`$${weekly_budget}`}
           />
           <SummaryRow

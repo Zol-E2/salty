@@ -9,7 +9,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { makeRedirectUri } from 'expo-auth-session';
 import { supabase } from '../../lib/supabase';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
@@ -17,22 +16,15 @@ import { Input } from '../../components/ui/Input';
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [sent, setSent] = useState(false);
   const router = useRouter();
 
-  const handleSendMagicLink = async () => {
+  const handleSendOtp = async () => {
     if (!email.trim()) return;
-
-    const redirectTo = makeRedirectUri();
 
     setLoading(true);
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
-      options: {
-        emailRedirectTo: redirectTo,
-      },
     });
-
     setLoading(false);
 
     if (error) {
@@ -40,7 +32,7 @@ export default function LoginScreen() {
       return;
     }
 
-    setSent(true);
+    router.push({ pathname: '/(auth)/verify', params: { email: email.trim() } });
   };
 
   return (
@@ -62,72 +54,37 @@ export default function LoginScreen() {
             </Text>
           </View>
 
-          {!sent ? (
-            <View>
-              <Input
-                label="Email address"
-                placeholder="you@university.edu"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                className="mb-4"
-              />
+          <View>
+            <Input
+              label="Email address"
+              placeholder="you@university.edu"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              className="mb-4"
+            />
 
-              <Button
-                title="Send Magic Link"
-                onPress={handleSendMagicLink}
-                loading={loading}
-                disabled={!email.trim()}
-                size="lg"
-                className="mb-4"
-              />
+            <Button
+              title="Send Code"
+              onPress={handleSendOtp}
+              loading={loading}
+              disabled={!email.trim()}
+              size="lg"
+              className="mb-4"
+            />
 
-              <Text className="text-sm text-slate-400 dark:text-slate-500 text-center mb-6">
-                We'll send you a sign-in link. No password needed.
-              </Text>
+            <Text className="text-sm text-slate-400 dark:text-slate-500 text-center mb-6">
+              We'll send you a 6-digit code. No password needed.
+            </Text>
 
-              <Button
-                title="Skip for now"
-                onPress={() => router.replace('/(tabs)/calendar')}
-                variant="ghost"
-                size="sm"
-              />
-            </View>
-          ) : (
-            <View className="items-center">
-              <View className="w-16 h-16 bg-primary-100 dark:bg-primary-900 rounded-full items-center justify-center mb-4">
-                <Ionicons name="mail" size={32} color="#10B981" />
-              </View>
-              <Text className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
-                Check your email
-              </Text>
-              <Text className="text-base text-slate-500 dark:text-slate-400 text-center mb-6">
-                We sent a magic link to{'\n'}
-                <Text className="font-semibold text-slate-700 dark:text-slate-300">
-                  {email}
-                </Text>
-              </Text>
-
-              <Button
-                title="Send again"
-                onPress={() => {
-                  setSent(false);
-                  handleSendMagicLink();
-                }}
-                variant="outline"
-                size="sm"
-                className="mb-3"
-              />
-
-              <Button
-                title="Use a different email"
-                onPress={() => setSent(false)}
-                variant="ghost"
-                size="sm"
-              />
-            </View>
-          )}
+            <Button
+              title="Skip for now"
+              onPress={() => router.replace('/(tabs)/calendar')}
+              variant="ghost"
+              size="sm"
+            />
+          </View>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>

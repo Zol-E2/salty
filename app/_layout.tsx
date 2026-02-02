@@ -4,39 +4,12 @@ import { Slot, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useColorScheme, View, ActivityIndicator } from 'react-native';
-import * as Linking from 'expo-linking';
-import * as QueryParams from 'expo-auth-session/build/QueryParams';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../stores/authStore';
 import { useThemeStore } from '../stores/themeStore';
 import { useOnboardingStore } from '../stores/onboardingStore';
 
 const queryClient = new QueryClient();
-
-const createSessionFromUrl = async (url: string) => {
-  const { params, errorCode } = QueryParams.getQueryParams(url);
-
-  if (errorCode) {
-    console.error('Deep link error:', errorCode);
-    return null;
-  }
-
-  const { access_token, refresh_token } = params;
-
-  if (!access_token) return null;
-
-  const { data, error } = await supabase.auth.setSession({
-    access_token,
-    refresh_token,
-  });
-
-  if (error) {
-    console.error('setSession error:', error.message);
-    return null;
-  }
-
-  return data.session;
-};
 
 function FlowGuard() {
   const { onboardingComplete, isLoaded } = useOnboardingStore();
@@ -78,19 +51,6 @@ export default function RootLayout() {
   useEffect(() => {
     loadSavedTheme();
     loadOnboardingState();
-  }, []);
-
-  // Listen for deep link URLs (magic link callback)
-  useEffect(() => {
-    Linking.getInitialURL().then((url) => {
-      if (url) createSessionFromUrl(url);
-    });
-
-    const subscription = Linking.addEventListener('url', ({ url }) => {
-      createSessionFromUrl(url);
-    });
-
-    return () => subscription.remove();
   }, []);
 
   // Listen for auth state changes
