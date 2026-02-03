@@ -11,5 +11,3 @@ npm-debug.*
 web-build/
 .env
 .env.local
-CLAUDE.md
-.claude/

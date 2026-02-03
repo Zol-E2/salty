@@ -12,7 +12,8 @@
       "Bash(node -e \"console.log\\(require\\(''/c/Users/ezoty/VSCodeProjects/salty/node_modules/nativewind/package.json''\\).version\\)\")",
       "Bash(node -e:*)",
       "Bash(tree:*)",
-      "WebFetch(domain:supabase.com)"
+      "WebFetch(domain:supabase.com)",
+      "Bash(ls:*)"
     ]
   }
 }

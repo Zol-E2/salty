@@ -101,3 +101,23 @@ export function useRemoveMealFromPlan() {
     },
   });
 }
+
+export function useDeleteAllMealPlans() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from('meal_plan_items')
+        .delete()
+        .eq('user_id', user!.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['meal-plan'] });
+      queryClient.invalidateQueries({ queryKey: ['meal-plan-day'] });
+    },
+  });
+}

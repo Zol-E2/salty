@@ -59,6 +59,44 @@ export default function CalendarScreen() {
     (item) => item.date === selectedDate
   );
 
+  const emeraldColor = isDark ? '#34D399' : '#10B981';
+
+  const weekDates = useMemo(() => {
+    const date = new Date(selectedDate + 'T12:00:00');
+    const day = date.getDay();
+    const monday = new Date(date);
+    monday.setDate(date.getDate() - ((day + 6) % 7));
+
+    const dates: string[] = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      dates.push(d.toISOString().split('T')[0]);
+    }
+    return dates;
+  }, [selectedDate]);
+
+  const navigateWeek = (direction: -1 | 1) => {
+    const current = new Date(selectedDate + 'T12:00:00');
+    current.setDate(current.getDate() + direction * 7);
+    setSelectedDate(current.toISOString().split('T')[0]);
+  };
+
+  const weekLabel = useMemo(() => {
+    const firstDate = new Date(weekDates[0] + 'T12:00:00');
+    const lastDate = new Date(weekDates[6] + 'T12:00:00');
+    const firstMonth = firstDate.toLocaleDateString('en-US', { month: 'long' });
+    const lastMonth = lastDate.toLocaleDateString('en-US', { month: 'long' });
+    const year = lastDate.getFullYear();
+
+    if (firstMonth === lastMonth) {
+      return `${firstMonth} ${year}`;
+    }
+    const firstShort = firstDate.toLocaleDateString('en-US', { month: 'short' });
+    const lastShort = lastDate.toLocaleDateString('en-US', { month: 'short' });
+    return `${firstShort} – ${lastShort} ${year}`;
+  }, [weekDates]);
+
   return (
     <SafeAreaView className="flex-1 bg-stone-50 dark:bg-slate-950">
       <View className="px-5 pt-4 pb-2 flex-row items-center justify-between">
@@ -105,26 +143,90 @@ export default function CalendarScreen() {
         </View>
       </View>
 
-      <Calendar
-        current={selectedDate}
-        onDayPress={(day: { dateString: string }) => setSelectedDate(day.dateString)}
-        markingType="multi-dot"
-        markedDates={markedDates}
-        hideExtraDays={viewMode === 'week'}
-        theme={{
-          backgroundColor: 'transparent',
-          calendarBackground: 'transparent',
-          textSectionTitleColor: isDark ? '#94A3B8' : '#64748B',
-          dayTextColor: isDark ? '#F8FAFC' : '#0F172A',
-          todayTextColor: isDark ? '#34D399' : '#10B981',
-          monthTextColor: isDark ? '#F8FAFC' : '#0F172A',
-          arrowColor: isDark ? '#34D399' : '#10B981',
-          textDisabledColor: isDark ? '#334155' : '#CBD5E1',
-          textMonthFontWeight: '700',
-          textDayFontWeight: '500',
-          textDayFontSize: 15,
-        }}
-      />
+      {viewMode === 'month' ? (
+        <Calendar
+          current={selectedDate}
+          onDayPress={(day: { dateString: string }) => setSelectedDate(day.dateString)}
+          markingType="multi-dot"
+          markedDates={markedDates}
+          theme={{
+            backgroundColor: 'transparent',
+            calendarBackground: 'transparent',
+            textSectionTitleColor: isDark ? '#94A3B8' : '#64748B',
+            dayTextColor: isDark ? '#F8FAFC' : '#0F172A',
+            todayTextColor: emeraldColor,
+            monthTextColor: isDark ? '#F8FAFC' : '#0F172A',
+            arrowColor: emeraldColor,
+            textDisabledColor: isDark ? '#334155' : '#CBD5E1',
+            textMonthFontWeight: '700',
+            textDayFontWeight: '500',
+            textDayFontSize: 15,
+          }}
+        />
+      ) : (
+        <View className="px-5 py-3">
+          <View className="flex-row items-center justify-between mb-4">
+            <TouchableOpacity onPress={() => navigateWeek(-1)}>
+              <Ionicons name="chevron-back" size={22} color={emeraldColor} />
+            </TouchableOpacity>
+            <Text className="text-base font-bold text-slate-900 dark:text-white">
+              {weekLabel}
+            </Text>
+            <TouchableOpacity onPress={() => navigateWeek(1)}>
+              <Ionicons name="chevron-forward" size={22} color={emeraldColor} />
+            </TouchableOpacity>
+          </View>
+
+          <View className="flex-row">
+            {weekDates.map((date) => {
+              const isSelected = date === selectedDate;
+              const isToday = date === today;
+              const dayDots = markedDates[date]?.dots || [];
+              const dayNum = parseInt(date.split('-')[2]);
+              const dayAbbr = new Date(date + 'T12:00:00')
+                .toLocaleDateString('en-US', { weekday: 'short' });
+
+              return (
+                <TouchableOpacity
+                  key={date}
+                  onPress={() => setSelectedDate(date)}
+                  className="flex-1 items-center py-2"
+                >
+                  <Text className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                    {dayAbbr}
+                  </Text>
+                  <View
+                    className={`w-9 h-9 rounded-full items-center justify-center ${
+                      isSelected ? 'bg-primary-500 dark:bg-primary-400' : ''
+                    }`}
+                  >
+                    <Text
+                      className={`text-sm font-semibold ${
+                        isSelected
+                          ? 'text-white'
+                          : isToday
+                            ? 'text-primary-500 dark:text-primary-400'
+                            : 'text-slate-900 dark:text-white'
+                      }`}
+                    >
+                      {dayNum}
+                    </Text>
+                  </View>
+                  <View className="flex-row gap-0.5 mt-1 h-2 items-center">
+                    {dayDots.map((dot: { key: string; color: string }) => (
+                      <View
+                        key={dot.key}
+                        className="w-1.5 h-1.5 rounded-full"
+                        style={{ backgroundColor: dot.color }}
+                      />
+                    ))}
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+      )}
 
       <View className="flex-1 px-5 pt-4">
         <View className="flex-row items-center justify-between mb-3">
