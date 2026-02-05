@@ -8,26 +8,32 @@ import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../stores/authStore';
 import { useThemeStore } from '../stores/themeStore';
 import { useOnboardingStore } from '../stores/onboardingStore';
+import { useAuth } from '../hooks/useAuth';
 
 const queryClient = new QueryClient();
 
 function FlowGuard() {
   const { onboardingComplete, isLoaded } = useOnboardingStore();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoaded) return;
+    if (!isLoaded || authLoading) return;
 
     const inOnboarding = segments[0] === '(onboarding)';
     const inAuth = segments[0] === '(auth)';
 
     if (!onboardingComplete && !inOnboarding) {
+      // New user: show onboarding
       router.replace('/(onboarding)/welcome');
+    } else if (onboardingComplete && !isAuthenticated && !inAuth) {
+      // Signed out user who completed onboarding: show login
+      router.replace('/(auth)/login');
     }
-  }, [onboardingComplete, isLoaded, segments]);
+  }, [onboardingComplete, isLoaded, isAuthenticated, authLoading, segments]);
 
-  if (!isLoaded) {
+  if (!isLoaded || authLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-stone-50 dark:bg-slate-950">
         <ActivityIndicator size="large" color="#10B981" />

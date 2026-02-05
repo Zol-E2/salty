@@ -56,31 +56,6 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Sign in prompt */}
-        {!isAuthenticated && (
-          <Card className="mb-4">
-            <View className="flex-row items-center mb-3">
-              <View className="w-10 h-10 bg-primary-50 dark:bg-primary-400/10 rounded-xl items-center justify-center mr-3">
-                <Ionicons name="person-outline" size={20} color="#10B981" />
-              </View>
-              <View className="flex-1">
-                <Text className="text-base font-semibold text-slate-900 dark:text-white">
-                  Sign in to sync your data
-                </Text>
-                <Text className="text-sm text-slate-500 dark:text-slate-400">
-                  Keep your meals and plans across devices
-                </Text>
-              </View>
-            </View>
-            <Button
-              title="Sign In"
-              onPress={() => router.push('/(auth)/login')}
-              size="md"
-              icon={<Ionicons name="log-in-outline" size={18} color="white" />}
-            />
-          </Card>
-        )}
-
         {/* Preferences */}
         <Card className="mb-4">
           <Text className="text-base font-semibold text-slate-900 dark:text-white mb-3">
@@ -140,20 +115,18 @@ export default function ProfileScreen() {
           />
         </Card>
 
-        {/* Sign out (only if signed in) */}
-        {isAuthenticated && (
-          <View className="mt-4 mb-8">
-            <Button
-              title="Sign Out"
-              onPress={handleSignOut}
-              variant="outline"
-              size="md"
-              icon={
-                <Ionicons name="log-out-outline" size={18} color="#10B981" />
-              }
-            />
-          </View>
-        )}
+        {/* Sign out */}
+        <View className="mt-4 mb-8">
+          <Button
+            title="Sign Out"
+            onPress={handleSignOut}
+            variant="outline"
+            size="md"
+            icon={
+              <Ionicons name="log-out-outline" size={18} color="#10B981" />
+            }
+          />
+        </View>
 
         <View className="h-8" />
       </ScrollView>

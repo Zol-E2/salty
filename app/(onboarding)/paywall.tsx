@@ -140,17 +140,11 @@ export default function PaywallScreen() {
         </View>
       </ScrollView>
 
-      <View className="px-6 pb-8 pt-4 gap-3 bg-stone-50 dark:bg-slate-950">
+      <View className="px-6 pb-8 pt-4 bg-stone-50 dark:bg-slate-950">
         <Button
           title="Continue"
           onPress={() => router.push('/(auth)/login')}
           size="lg"
-        />
-        <Button
-          title="Skip for now"
-          onPress={() => router.replace('/(tabs)/calendar')}
-          variant="ghost"
-          size="sm"
         />
       </View>
     </SafeAreaView>

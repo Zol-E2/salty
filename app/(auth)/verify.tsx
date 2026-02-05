@@ -10,10 +10,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
+import { useOnboardingStore } from '../../stores/onboardingStore';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 
 const RESEND_COOLDOWN_SECONDS = 60;
+const CODE_EXPIRY_SECONDS = 300; // 5 minutes
 
 export default function VerifyScreen() {
   const { email } = useLocalSearchParams<{ email: string }>();
@@ -24,12 +26,19 @@ export default function VerifyScreen() {
   const [verifying, setVerifying] = useState(false);
   const [resending, setResending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
+  const [expiryTime, setExpiryTime] = useState(CODE_EXPIRY_SECONDS);
 
   useEffect(() => {
     if (cooldown <= 0) return;
     const timer = setTimeout(() => setCooldown((c) => c - 1), 1000);
     return () => clearTimeout(timer);
   }, [cooldown]);
+
+  useEffect(() => {
+    if (expiryTime <= 0) return;
+    const timer = setTimeout(() => setExpiryTime((t) => t - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [expiryTime]);
 
   const handleVerify = async () => {
     if (code.length !== 8) {
@@ -53,6 +62,20 @@ export default function VerifyScreen() {
       return;
     }
 
+    // Sync onboarding data to Supabase profile
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const onboardingData = useOnboardingStore.getState();
+      if (onboardingData.onboardingComplete) {
+        await supabase.from('profiles').update({
+          goal: onboardingData.goal || null,
+          weekly_budget: onboardingData.weekly_budget,
+          skill_level: onboardingData.skill_level || null,
+          dietary_restrictions: onboardingData.dietary_restrictions,
+        }).eq('id', user.id);
+      }
+    }
+
     // Session is now established via onAuthStateChange in _layout.tsx.
     router.replace('/(tabs)/calendar');
   };
@@ -73,6 +96,7 @@ export default function VerifyScreen() {
     }
 
     setCooldown(RESEND_COOLDOWN_SECONDS);
+    setExpiryTime(CODE_EXPIRY_SECONDS);
   };
 
   return (
@@ -95,6 +119,11 @@ export default function VerifyScreen() {
                 {email}
               </Text>
             </Text>
+            <Text className={`text-sm mt-2 ${expiryTime > 0 ? 'text-slate-400 dark:text-slate-500' : 'text-rose-500 dark:text-rose-400'}`}>
+              {expiryTime > 0
+                ? `Code expires in ${Math.floor(expiryTime / 60)}:${(expiryTime % 60).toString().padStart(2, '0')}`
+                : 'Code expired'}
+            </Text>
           </View>
 
           <Input
@@ -115,7 +144,7 @@ export default function VerifyScreen() {
             title="Verify"
             onPress={handleVerify}
             loading={verifying}
-            disabled={code.length !== 8}
+            disabled={code.length !== 8 || expiryTime <= 0}
             size="lg"
             className="mb-4"
           />

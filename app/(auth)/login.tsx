@@ -74,16 +74,9 @@ export default function LoginScreen() {
               className="mb-4"
             />
 
-            <Text className="text-sm text-slate-400 dark:text-slate-500 text-center mb-6">
+            <Text className="text-sm text-slate-400 dark:text-slate-500 text-center">
               We'll send you an 8-digit code. No password needed.
             </Text>
-
-            <Button
-              title="Skip for now"
-              onPress={() => router.replace('/(tabs)/calendar')}
-              variant="ghost"
-              size="sm"
-            />
           </View>
         </View>
       </KeyboardAvoidingView>
