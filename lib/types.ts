@@ -71,6 +71,7 @@ export interface GenerateMealPlanRequest {
   budget: number;
   max_cook_time: number;
   servings: number;
+  daily_calories?: number;
   dietary_restrictions: DietaryRestriction[];
   available_ingredients: string[];
   skill_level: string;

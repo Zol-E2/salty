@@ -24,7 +24,7 @@ Requires `.env.local` with:
 - `EXPO_PUBLIC_SUPABASE_URL` - Supabase project URL
 - `EXPO_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key
 - `EXPO_PUBLIC_UNSPLASH_ACCESS_KEY` - Unsplash API key for food images
-- `GEMINI_API_KEY` - Set in Supabase Edge Function environment (not in .env.local)
+- `EXPO_PUBLIC_GEMINI_API_KEY` - Google Gemini API key for AI meal generation
 
 ## Architecture
 
@@ -43,7 +43,6 @@ Requires `.env.local` with:
 ### Backend (Supabase)
 - Auth: Passwordless magic link via `supabase.auth.signInWithOtp()`
 - Database tables: `profiles`, `meals`, `meal_plan_items`
-- Edge Function `generate-meal-plan` calls Gemini 2.0 Flash to generate structured meal data (JSON mode, temperature 0.7)
 
 ### Key Libraries
 - **NativeWind v4** for Tailwind CSS styling (configured in `metro.config.js`, `babel.config.js`, `tailwind.config.js`)
@@ -53,8 +52,8 @@ Requires `.env.local` with:
 
 ### AI Meal Generation Flow
 1. User fills `GenerateForm` with budget, cook time, servings, dietary restrictions, available ingredients
-2. Supabase Edge Function receives request, calls Gemini API with engineered prompt
-3. Returns array of `GeneratedMeal` objects with nutrition, cost, ingredients, and instructions
+2. `lib/gemini.ts` constructs the prompt and calls the Gemini 2.0 Flash API directly via fetch (JSON mode, temperature 0.7)
+3. Parses JSON response and returns array of `GeneratedMeal` objects with nutrition, cost, ingredients, and instructions
 4. Unsplash images fetched asynchronously for each meal
 5. User previews and saves meals to their plan
 

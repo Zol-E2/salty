@@ -19,6 +19,7 @@ export function GenerateForm({ onSubmit, loading }: GenerateFormProps) {
   const [budget, setBudget] = useState(profile?.weekly_budget?.toString() ?? '50');
   const [maxCookTime, setMaxCookTime] = useState('30');
   const [servings, setServings] = useState('1');
+  const [dailyCalories, setDailyCalories] = useState('');
   const [ingredients, setIngredients] = useState('');
   const [dietary, setDietary] = useState<DietaryRestriction[]>(
     profile?.dietary_restrictions ?? []
@@ -30,6 +31,7 @@ export function GenerateForm({ onSubmit, loading }: GenerateFormProps) {
       budget: parseFloat(budget) || 50,
       max_cook_time: parseInt(maxCookTime) || 30,
       servings: parseInt(servings) || 1,
+      daily_calories: dailyCalories ? parseInt(dailyCalories) : undefined,
       dietary_restrictions: dietary,
       available_ingredients: ingredients
         .split(',')
@@ -95,6 +97,16 @@ export function GenerateForm({ onSubmit, loading }: GenerateFormProps) {
         placeholder="1"
         value={servings}
         onChangeText={setServings}
+        keyboardType="numeric"
+        className="mb-6"
+      />
+
+      {/* Daily Calories */}
+      <Input
+        label="Daily calorie target (optional)"
+        placeholder="2000"
+        value={dailyCalories}
+        onChangeText={setDailyCalories}
         keyboardType="numeric"
         className="mb-6"
       />
