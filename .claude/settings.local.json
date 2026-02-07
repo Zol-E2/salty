@@ -13,7 +13,9 @@
       "Bash(node -e:*)",
       "Bash(tree:*)",
       "WebFetch(domain:supabase.com)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(npx expo install:*)",
+      "Bash(npm ls:*)"
     ]
   }
 }

@@ -1,7 +1,47 @@
+import { useEffect, useRef } from 'react';
+import { Animated, useColorScheme } from 'react-native';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useColorScheme } from 'react-native';
 import { useThemeStore } from '../../stores/themeStore';
+
+function AnimatedTabIcon({
+  name,
+  color,
+  size,
+  focused,
+}: {
+  name: keyof typeof Ionicons.glyphMap;
+  color: string;
+  size: number;
+  focused: boolean;
+}) {
+  const scale = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (focused) {
+      Animated.sequence([
+        Animated.spring(scale, {
+          toValue: 0.85,
+          damping: 15,
+          stiffness: 200,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scale, {
+          toValue: 1,
+          damping: 12,
+          stiffness: 150,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [focused]);
+
+  return (
+    <Animated.View style={{ transform: [{ scale }] }}>
+      <Ionicons name={name} size={size} color={color} />
+    </Animated.View>
+  );
+}
 
 export default function TabsLayout() {
   const themeMode = useThemeStore((s) => s.mode);
@@ -13,6 +53,7 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
+        animation: 'fade',
         tabBarActiveTintColor: isDark ? '#34D399' : '#10B981',
         tabBarInactiveTintColor: isDark ? '#64748B' : '#94A3B8',
         tabBarStyle: {
@@ -32,8 +73,8 @@ export default function TabsLayout() {
         name="calendar"
         options={{
           title: 'Calendar',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="calendar-outline" size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <AnimatedTabIcon name="calendar-outline" size={size} color={color} focused={focused} />
           ),
         }}
       />
@@ -41,8 +82,8 @@ export default function TabsLayout() {
         name="generate"
         options={{
           title: 'Generate',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="sparkles-outline" size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <AnimatedTabIcon name="sparkles-outline" size={size} color={color} focused={focused} />
           ),
         }}
       />
@@ -50,8 +91,8 @@ export default function TabsLayout() {
         name="profile"
         options={{
           title: 'Profile',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-outline" size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <AnimatedTabIcon name="person-outline" size={size} color={color} focused={focused} />
           ),
         }}
       />

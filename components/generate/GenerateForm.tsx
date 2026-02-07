@@ -1,5 +1,5 @@
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { useState } from 'react';
+import { View, Text, Pressable, ScrollView, Animated } from 'react-native';
+import { useState, useRef } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
@@ -10,6 +10,112 @@ import { useProfile } from '../../hooks/useProfile';
 interface GenerateFormProps {
   onSubmit: (request: GenerateMealPlanRequest) => void;
   loading: boolean;
+}
+
+function TimeframeButton({
+  label,
+  isSelected,
+  onPress,
+}: {
+  label: string;
+  isSelected: boolean;
+  onPress: () => void;
+}) {
+  const scale = useRef(new Animated.Value(1)).current;
+
+  const onPressIn = () => {
+    Animated.spring(scale, {
+      toValue: 0.95,
+      damping: 15,
+      stiffness: 150,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const onPressOut = () => {
+    Animated.spring(scale, {
+      toValue: 1,
+      damping: 15,
+      stiffness: 150,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  return (
+    <Pressable onPress={onPress} onPressIn={onPressIn} onPressOut={onPressOut} style={{ flex: 1 }}>
+      <Animated.View
+        style={{ transform: [{ scale }] }}
+        className={`py-3 rounded-xl border-2 items-center ${
+          isSelected
+            ? 'border-primary-500 bg-primary-50 dark:border-primary-400 dark:bg-primary-400/10'
+            : 'border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900'
+        }`}
+      >
+        <Text
+          className={`text-sm font-semibold ${
+            isSelected
+              ? 'text-primary-600 dark:text-primary-400'
+              : 'text-slate-700 dark:text-slate-300'
+          }`}
+        >
+          {label}
+        </Text>
+      </Animated.View>
+    </Pressable>
+  );
+}
+
+function DietaryChip({
+  label,
+  isSelected,
+  onPress,
+}: {
+  label: string;
+  isSelected: boolean;
+  onPress: () => void;
+}) {
+  const scale = useRef(new Animated.Value(1)).current;
+
+  const onPressIn = () => {
+    Animated.spring(scale, {
+      toValue: 0.95,
+      damping: 15,
+      stiffness: 150,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const onPressOut = () => {
+    Animated.spring(scale, {
+      toValue: 1,
+      damping: 15,
+      stiffness: 150,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  return (
+    <Pressable onPress={onPress} onPressIn={onPressIn} onPressOut={onPressOut}>
+      <Animated.View
+        style={{ transform: [{ scale }] }}
+        className={`px-4 py-2 rounded-full border-2 ${
+          isSelected
+            ? 'border-primary-500 bg-primary-50 dark:border-primary-400 dark:bg-primary-400/10'
+            : 'border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900'
+        }`}
+      >
+        <Text
+          className={`text-sm font-medium ${
+            isSelected
+              ? 'text-primary-600 dark:text-primary-400'
+              : 'text-slate-700 dark:text-slate-300'
+          }`}
+        >
+          {label}
+        </Text>
+      </Animated.View>
+    </Pressable>
+  );
 }
 
 export function GenerateForm({ onSubmit, loading }: GenerateFormProps) {
@@ -49,25 +155,12 @@ export function GenerateForm({ onSubmit, loading }: GenerateFormProps) {
       </Text>
       <View className="flex-row gap-2 mb-6">
         {(['day', 'week', 'month'] as const).map((tf) => (
-          <TouchableOpacity
+          <TimeframeButton
             key={tf}
+            label={tf.charAt(0).toUpperCase() + tf.slice(1)}
+            isSelected={timeframe === tf}
             onPress={() => setTimeframe(tf)}
-            className={`flex-1 py-3 rounded-xl border-2 items-center ${
-              timeframe === tf
-                ? 'border-primary-500 bg-primary-50 dark:border-primary-400 dark:bg-primary-400/10'
-                : 'border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900'
-            }`}
-          >
-            <Text
-              className={`text-sm font-semibold ${
-                timeframe === tf
-                  ? 'text-primary-600 dark:text-primary-400'
-                  : 'text-slate-700 dark:text-slate-300'
-              }`}
-            >
-              {tf.charAt(0).toUpperCase() + tf.slice(1)}
-            </Text>
-          </TouchableOpacity>
+          />
         ))}
       </View>
 
@@ -129,8 +222,10 @@ export function GenerateForm({ onSubmit, loading }: GenerateFormProps) {
         {DIETARY_OPTIONS.map((option) => {
           const selected = dietary.includes(option.key);
           return (
-            <TouchableOpacity
+            <DietaryChip
               key={option.key}
+              label={option.label}
+              isSelected={selected}
               onPress={() =>
                 setDietary((prev) =>
                   selected
@@ -138,22 +233,7 @@ export function GenerateForm({ onSubmit, loading }: GenerateFormProps) {
                     : [...prev, option.key]
                 )
               }
-              className={`px-4 py-2 rounded-full border-2 ${
-                selected
-                  ? 'border-primary-500 bg-primary-50 dark:border-primary-400 dark:bg-primary-400/10'
-                  : 'border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900'
-              }`}
-            >
-              <Text
-                className={`text-sm font-medium ${
-                  selected
-                    ? 'text-primary-600 dark:text-primary-400'
-                    : 'text-slate-700 dark:text-slate-300'
-                }`}
-              >
-                {option.label}
-              </Text>
-            </TouchableOpacity>
+            />
           );
         })}
       </View>

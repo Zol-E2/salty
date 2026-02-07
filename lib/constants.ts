@@ -32,7 +32,7 @@ export const SKILL_LEVELS = [
 
 export const SLOT_COLORS: Record<MealSlotType, string> = {
   breakfast: '#FBBF24',
-  lunch: '#34D399',
+  lunch: '#349ED3',
   dinner: '#FB7185',
   snack: '#A78BFA',
 };

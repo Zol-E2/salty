@@ -9,6 +9,7 @@ import { useMealPlanForMonth } from '../../hooks/useMealPlan';
 import { useThemeStore } from '../../stores/themeStore';
 import { SLOT_COLORS } from '../../lib/constants';
 import { MealSlotType } from '../../lib/types';
+import { AnimatedCard } from '../../components/ui/AnimatedCard';
 
 export default function CalendarScreen() {
   const router = useRouter();
@@ -250,29 +251,30 @@ export default function CalendarScreen() {
 
         <ScrollView showsVerticalScrollIndicator={false}>
           {mealsForSelectedDate && mealsForSelectedDate.length > 0 ? (
-            mealsForSelectedDate.map((item) => (
-              <TouchableOpacity
-                key={item.id}
-                onPress={() => router.push(`/meal/${item.meal_id}`)}
-                className="flex-row items-center bg-white dark:bg-slate-900 rounded-xl p-3 border border-slate-100 dark:border-slate-800 mb-2"
-              >
-                <View
-                  className="w-3 h-3 rounded-full mr-3"
-                  style={{
-                    backgroundColor:
-                      SLOT_COLORS[item.slot as MealSlotType] || '#10B981',
-                  }}
-                />
-                <View className="flex-1">
-                  <Text className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                    {item.slot}
-                  </Text>
-                  <Text className="text-sm font-semibold text-slate-900 dark:text-white">
-                    {item.meal?.name ?? 'Unknown meal'}
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={16} color="#94A3B8" />
-              </TouchableOpacity>
+            mealsForSelectedDate.map((item, index) => (
+              <AnimatedCard key={`${selectedDate}-${item.id}`} index={index} staggerMs={60}>
+                <TouchableOpacity
+                  onPress={() => router.push(`/meal/${item.meal_id}`)}
+                  className="flex-row items-center bg-white dark:bg-slate-900 rounded-xl p-3 border border-slate-100 dark:border-slate-800 mb-2"
+                >
+                  <View
+                    className="w-3 h-3 rounded-full mr-3"
+                    style={{
+                      backgroundColor:
+                        SLOT_COLORS[item.slot as MealSlotType] || '#10B981',
+                    }}
+                  />
+                  <View className="flex-1">
+                    <Text className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                      {item.slot}
+                    </Text>
+                    <Text className="text-sm font-semibold text-slate-900 dark:text-white">
+                      {item.meal?.name ?? 'Unknown meal'}
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={16} color="#94A3B8" />
+                </TouchableOpacity>
+              </AnimatedCard>
             ))
           ) : (
             <View className="items-center py-8">

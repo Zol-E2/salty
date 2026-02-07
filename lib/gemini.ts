@@ -63,7 +63,7 @@ Return ONLY valid JSON with no markdown formatting, no code fences, just the raw
 meal_type must be one of: breakfast, lunch, dinner, snack
 difficulty must be one of: easy, medium, hard
 day is the day number starting from 1
-Ensure the total cost of all meals stays within the $${budget} budget and the meals hit the daily calorie target: ${daily_calories} calories per day.`;
+Ensure the total cost of all meals stays within the $${budget} budget${daily_calories ? ` and the meals hit the daily calorie target: ${daily_calories} calories per day` : ''}.`;
 
   const response = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
     method: 'POST',
@@ -72,7 +72,7 @@ Ensure the total cost of all meals stays within the $${budget} budget and the me
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: {
         temperature: 0.7,
-        maxOutputTokens: 8192,
+        maxOutputTokens: 65536,
         responseMimeType: 'application/json',
       },
     }),
@@ -84,12 +84,28 @@ Ensure the total cost of all meals stays within the $${budget} budget and the me
   }
 
   const geminiData = await response.json();
+
+  const finishReason = geminiData.candidates?.[0]?.finishReason;
+  if (finishReason === 'MAX_TOKENS') {
+    throw new Error(
+      'Response was cut short. Try generating a shorter meal plan.'
+    );
+  }
+
   const textContent = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
 
   if (!textContent) {
     throw new Error('No content returned from Gemini');
   }
 
-  const mealPlan = JSON.parse(textContent);
+  let mealPlan;
+  try {
+    mealPlan = JSON.parse(textContent);
+  } catch {
+    throw new Error(
+      'Failed to parse meal plan response. Try generating again.'
+    );
+  }
+
   return mealPlan.meals as GeneratedMeal[];
 }

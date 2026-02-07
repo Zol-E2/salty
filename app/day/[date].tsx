@@ -7,6 +7,7 @@ import { useMealPlanForDate, useRemoveMealFromPlan } from '../../hooks/useMealPl
 import { MealSlot } from '../../components/calendar/MealSlot';
 import { MealSlotType } from '../../lib/types';
 import { MEAL_SLOTS } from '../../lib/constants';
+import { AnimatedCard } from '../../components/ui/AnimatedCard';
 
 export default function DayDetailScreen() {
   const { date } = useLocalSearchParams<{ date: string }>();
@@ -47,22 +48,23 @@ export default function DayDetailScreen() {
       </View>
 
       <ScrollView className="flex-1 px-5 pt-4" showsVerticalScrollIndicator={false}>
-        {MEAL_SLOTS.map(({ key }) => {
+        {MEAL_SLOTS.map(({ key }, index) => {
           const item = getItemForSlot(key);
           return (
-            <MealSlot
-              key={key}
-              slot={key}
-              item={item}
-              onPress={() => {
-                if (item?.meal) {
-                  router.push(`/meal/${item.meal_id}`);
-                } else {
-                  router.push(`/meal/add?date=${date}&slot=${key}`);
-                }
-              }}
-              onRemove={item ? () => handleRemove(item.id) : undefined}
-            />
+            <AnimatedCard key={key} index={index} staggerMs={60}>
+              <MealSlot
+                slot={key}
+                item={item}
+                onPress={() => {
+                  if (item?.meal) {
+                    router.push(`/meal/${item.meal_id}`);
+                  } else {
+                    router.push(`/meal/add?date=${date}&slot=${key}`);
+                  }
+                }}
+                onRemove={item ? () => handleRemove(item.id) : undefined}
+              />
+            </AnimatedCard>
           );
         })}
 

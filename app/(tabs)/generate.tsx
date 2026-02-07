@@ -3,6 +3,7 @@ import { View, Text, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { SaltShakerLoader } from '../../components/ui/SaltShakerLoader';
 import { GenerateForm } from '../../components/generate/GenerateForm';
 import { GeneratePreview } from '../../components/generate/GeneratePreview';
 import { generateMealPlan } from '../../lib/gemini';
@@ -21,8 +22,10 @@ export default function GenerateScreen() {
   const [saving, setSaving] = useState(false);
   const [generatedMeals, setGeneratedMeals] = useState<GeneratedMeal[] | null>(null);
   const [imageUrls, setImageUrls] = useState<Record<string, string | null>>({});
+  const [lastRequest, setLastRequest] = useState<GenerateMealPlanRequest | null>(null);
 
   const handleGenerate = async (request: GenerateMealPlanRequest) => {
+    setLastRequest(request);
     setLoading(true);
     try {
       const meals = await generateMealPlan(request);
@@ -119,6 +122,13 @@ export default function GenerateScreen() {
     setImageUrls({});
   };
 
+  const handleTryAgain = () => {
+    if (!lastRequest) return;
+    setGeneratedMeals(null);
+    setImageUrls({});
+    handleGenerate(lastRequest);
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-stone-50 dark:bg-slate-950">
       <View className="px-5 pt-4 pb-2">
@@ -137,22 +147,16 @@ export default function GenerateScreen() {
 
       <View className="flex-1 px-5 pt-4">
         {loading ? (
-          <View className="flex-1 items-center justify-center">
-            <View className="w-20 h-20 bg-primary-50 dark:bg-primary-400/10 rounded-full items-center justify-center mb-4">
-              <Ionicons name="sparkles" size={36} color="#10B981" />
-            </View>
-            <Text className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
-              Generating your meals...
-            </Text>
-            <Text className="text-sm text-slate-500 dark:text-slate-400 text-center">
-              Our AI is crafting the perfect plan{'\n'}based on your preferences
-            </Text>
-          </View>
+          <SaltShakerLoader
+            message="Generating your meals..."
+            submessage={"Our AI is crafting the perfect plan\nbased on your preferences"}
+          />
         ) : generatedMeals ? (
           <GeneratePreview
             meals={generatedMeals}
             onSave={handleSave}
             onDiscard={handleDiscard}
+            onTryAgain={handleTryAgain}
             saving={saving}
             imageUrls={imageUrls}
           />

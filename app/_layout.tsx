@@ -41,7 +41,34 @@ function FlowGuard() {
     );
   }
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        animation: 'fade_from_bottom',
+        animationDuration: 250,
+      }}
+    >
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="(auth)" />
+      <Stack.Screen name="(onboarding)" />
+      <Stack.Screen
+        name="meal/[id]"
+        options={{
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
+          animationDuration: 300,
+        }}
+      />
+      <Stack.Screen
+        name="day/[date]"
+        options={{
+          animation: 'slide_from_right',
+          animationDuration: 250,
+        }}
+      />
+    </Stack>
+  );
 }
 
 export default function RootLayout() {
