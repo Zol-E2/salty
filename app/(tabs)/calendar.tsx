@@ -7,9 +7,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from 'react-native';
 import { useMealPlanForMonth } from '../../hooks/useMealPlan';
 import { useThemeStore } from '../../stores/themeStore';
-import { SLOT_COLORS } from '../../lib/constants';
+import { SLOT_COLORS, MEAL_SLOTS } from '../../lib/constants';
 import { MealSlotType } from '../../lib/types';
 import { AnimatedCard } from '../../components/ui/AnimatedCard';
+
+const SLOT_ORDER: Record<string, number> = Object.fromEntries(
+  MEAL_SLOTS.map(({ key }, i) => [key, i])
+);
 
 export default function CalendarScreen() {
   const router = useRouter();
@@ -48,9 +52,9 @@ export default function CalendarScreen() {
       day: 'numeric',
     });
 
-  const mealsForSelectedDate = planItems?.filter(
-    (item) => item.date === selectedDate
-  );
+  const mealsForSelectedDate = planItems
+    ?.filter((item) => item.date === selectedDate)
+    .sort((a, b) => (SLOT_ORDER[a.slot] ?? 99) - (SLOT_ORDER[b.slot] ?? 99));
 
   const emeraldColor = isDark ? '#34D399' : '#10B981';
 
@@ -110,7 +114,7 @@ export default function CalendarScreen() {
       .sort()
       .map((date) => ({
         title: date,
-        data: grouped[date],
+        data: grouped[date].sort((a, b) => (SLOT_ORDER[a.slot] ?? 99) - (SLOT_ORDER[b.slot] ?? 99)),
       }));
   }, [planItems]);
 
