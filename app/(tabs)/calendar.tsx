@@ -38,9 +38,12 @@ export default function CalendarScreen() {
         marks[item.date] = { dots: [] };
       }
       const color = SLOT_COLORS[item.slot as MealSlotType] || '#10B981';
-      if (!marks[item.date].dots.find((d: any) => d.color === color)) {
+      if (!marks[item.date].dots.find((d: any) => d.key === item.slot)) {
         marks[item.date].dots.push({ key: item.slot, color });
       }
+    });
+    Object.values(marks).forEach((mark) => {
+      mark.dots.sort((a: any, b: any) => (SLOT_ORDER[a.key] ?? 99) - (SLOT_ORDER[b.key] ?? 99));
     });
     return marks;
   }, [planItems]);
