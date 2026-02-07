@@ -3,12 +3,13 @@ import { useEffect } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useColorScheme, View, ActivityIndicator } from 'react-native';
+import { useColorScheme, View } from 'react-native';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../stores/authStore';
 import { useThemeStore } from '../stores/themeStore';
 import { useOnboardingStore } from '../stores/onboardingStore';
 import { useAuth } from '../hooks/useAuth';
+import { SaltShakerLoader } from '../components/ui/SaltShakerLoader';
 
 const queryClient = new QueryClient();
 
@@ -36,7 +37,7 @@ function FlowGuard() {
   if (!isLoaded || authLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-stone-50 dark:bg-slate-950">
-        <ActivityIndicator size="large" color="#10B981" />
+        <SaltShakerLoader message="" submessage="" />
       </View>
     );
   }

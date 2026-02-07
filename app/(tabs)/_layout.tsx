@@ -51,6 +51,8 @@ export default function TabsLayout() {
 
   return (
     <Tabs
+      initialRouteName="generate"
+      backBehavior="history"
       screenOptions={{
         headerShown: false,
         animation: 'fade',
