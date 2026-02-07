@@ -126,25 +126,95 @@ export default function CalendarScreen() {
       </View>
 
       {viewMode === 'month' ? (
-        <Calendar
-          current={selectedDate}
-          onDayPress={(day: { dateString: string }) => setSelectedDate(day.dateString)}
-          markingType="multi-dot"
-          markedDates={markedDates}
-          theme={{
-            backgroundColor: 'transparent',
-            calendarBackground: 'transparent',
-            textSectionTitleColor: isDark ? '#94A3B8' : '#64748B',
-            dayTextColor: isDark ? '#F8FAFC' : '#0F172A',
-            todayTextColor: emeraldColor,
-            monthTextColor: isDark ? '#F8FAFC' : '#0F172A',
-            arrowColor: emeraldColor,
-            textDisabledColor: isDark ? '#334155' : '#CBD5E1',
-            textMonthFontWeight: '700',
-            textDayFontWeight: '500',
-            textDayFontSize: 15,
-          }}
-        />
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
+          <Calendar
+            current={selectedDate}
+            onDayPress={(day: { dateString: string }) => setSelectedDate(day.dateString)}
+            markingType="multi-dot"
+            markedDates={markedDates}
+            theme={{
+              backgroundColor: 'transparent',
+              calendarBackground: 'transparent',
+              textSectionTitleColor: isDark ? '#94A3B8' : '#64748B',
+              dayTextColor: isDark ? '#F8FAFC' : '#0F172A',
+              todayTextColor: emeraldColor,
+              monthTextColor: isDark ? '#F8FAFC' : '#0F172A',
+              arrowColor: emeraldColor,
+              textDisabledColor: isDark ? '#334155' : '#CBD5E1',
+              textMonthFontWeight: '700',
+              textDayFontWeight: '500',
+              textDayFontSize: 15,
+            }}
+          />
+
+          <View className="px-5 pt-4">
+            <View className="flex-row items-center justify-between mb-3">
+              <Text className="text-base font-semibold text-slate-900 dark:text-white">
+                {selectedDateFormatted}
+              </Text>
+              <TouchableOpacity
+                onPress={() => router.push(`/day/${selectedDate}`)}
+                className="flex-row items-center"
+              >
+                <Text className="text-sm font-medium text-primary-500 dark:text-primary-400 mr-1">
+                  View all
+                </Text>
+                <Ionicons
+                  name="chevron-forward"
+                  size={14}
+                  color={isDark ? '#34D399' : '#10B981'}
+                />
+              </TouchableOpacity>
+            </View>
+
+            {mealsForSelectedDate && mealsForSelectedDate.length > 0 ? (
+              mealsForSelectedDate.map((item, index) => (
+                <AnimatedCard key={`${selectedDate}-${item.id}`} index={index} staggerMs={60}>
+                  <TouchableOpacity
+                    onPress={() => router.push(`/meal/${item.meal_id}`)}
+                    className="flex-row items-center bg-white dark:bg-slate-900 rounded-xl p-3 border border-slate-100 dark:border-slate-800 mb-2"
+                  >
+                    <View
+                      className="w-3 h-3 rounded-full mr-3"
+                      style={{
+                        backgroundColor:
+                          SLOT_COLORS[item.slot as MealSlotType] || '#10B981',
+                      }}
+                    />
+                    <View className="flex-1">
+                      <Text className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                        {item.slot}
+                      </Text>
+                      <Text className="text-sm font-semibold text-slate-900 dark:text-white">
+                        {item.meal?.name ?? 'Unknown meal'}
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={16} color="#94A3B8" />
+                  </TouchableOpacity>
+                </AnimatedCard>
+              ))
+            ) : (
+              <View className="items-center py-8">
+                <Ionicons
+                  name="restaurant-outline"
+                  size={40}
+                  color={isDark ? '#334155' : '#CBD5E1'}
+                />
+                <Text className="text-sm text-slate-400 dark:text-slate-500 mt-3">
+                  No meals planned for this day
+                </Text>
+                <TouchableOpacity
+                  onPress={() => router.push(`/day/${selectedDate}`)}
+                  className="mt-3"
+                >
+                  <Text className="text-sm font-semibold text-primary-500 dark:text-primary-400">
+                    Add meals
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        </ScrollView>
       ) : (
         <SectionList
           sections={mealsByDate}
@@ -201,78 +271,6 @@ export default function CalendarScreen() {
           stickySectionHeadersEnabled={false}
           showsVerticalScrollIndicator={false}
         />
-      )}
-
-      {viewMode === 'month' && (
-        <View className="flex-1 px-5 pt-4">
-          <View className="flex-row items-center justify-between mb-3">
-            <Text className="text-base font-semibold text-slate-900 dark:text-white">
-              {selectedDateFormatted}
-            </Text>
-            <TouchableOpacity
-              onPress={() => router.push(`/day/${selectedDate}`)}
-              className="flex-row items-center"
-            >
-              <Text className="text-sm font-medium text-primary-500 dark:text-primary-400 mr-1">
-                View all
-              </Text>
-              <Ionicons
-                name="chevron-forward"
-                size={14}
-                color={isDark ? '#34D399' : '#10B981'}
-              />
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView showsVerticalScrollIndicator={false}>
-            {mealsForSelectedDate && mealsForSelectedDate.length > 0 ? (
-              mealsForSelectedDate.map((item, index) => (
-                <AnimatedCard key={`${selectedDate}-${item.id}`} index={index} staggerMs={60}>
-                  <TouchableOpacity
-                    onPress={() => router.push(`/meal/${item.meal_id}`)}
-                    className="flex-row items-center bg-white dark:bg-slate-900 rounded-xl p-3 border border-slate-100 dark:border-slate-800 mb-2"
-                  >
-                    <View
-                      className="w-3 h-3 rounded-full mr-3"
-                      style={{
-                        backgroundColor:
-                          SLOT_COLORS[item.slot as MealSlotType] || '#10B981',
-                      }}
-                    />
-                    <View className="flex-1">
-                      <Text className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                        {item.slot}
-                      </Text>
-                      <Text className="text-sm font-semibold text-slate-900 dark:text-white">
-                        {item.meal?.name ?? 'Unknown meal'}
-                      </Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={16} color="#94A3B8" />
-                  </TouchableOpacity>
-                </AnimatedCard>
-              ))
-            ) : (
-              <View className="items-center py-8">
-                <Ionicons
-                  name="restaurant-outline"
-                  size={40}
-                  color={isDark ? '#334155' : '#CBD5E1'}
-                />
-                <Text className="text-sm text-slate-400 dark:text-slate-500 mt-3">
-                  No meals planned for this day
-                </Text>
-                <TouchableOpacity
-                  onPress={() => router.push(`/day/${selectedDate}`)}
-                  className="mt-3"
-                >
-                  <Text className="text-sm font-semibold text-primary-500 dark:text-primary-400">
-                    Add meals
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </ScrollView>
-        </View>
       )}
     </SafeAreaView>
   );
