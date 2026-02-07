@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, SectionList } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, SectionList, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Calendar } from 'react-native-calendars';
@@ -29,7 +29,6 @@ export default function CalendarScreen() {
 
   const markedDates = useMemo(() => {
     const marks: Record<string, any> = {};
-
     planItems?.forEach((item) => {
       if (!marks[item.date]) {
         marks[item.date] = { dots: [] };
@@ -39,15 +38,8 @@ export default function CalendarScreen() {
         marks[item.date].dots.push({ key: item.slot, color });
       }
     });
-
-    marks[selectedDate] = {
-      ...marks[selectedDate],
-      selected: true,
-      selectedColor: isDark ? '#34D399' : '#10B981',
-    };
-
     return marks;
-  }, [planItems, selectedDate, isDark]);
+  }, [planItems]);
 
   const selectedDateFormatted = new Date(selectedDate + 'T12:00:00')
     .toLocaleDateString('en-US', {
@@ -61,6 +53,49 @@ export default function CalendarScreen() {
   );
 
   const emeraldColor = isDark ? '#34D399' : '#10B981';
+
+  const renderDay = ({ date, state, marking }: any) => {
+    const dateString = date.dateString;
+    const isSelected = dateString === selectedDate;
+    const isToday = dateString === today;
+    const isDisabled = state === 'disabled';
+    const dots = marking?.dots || [];
+
+    const textColor = isSelected
+      ? '#FFFFFF'
+      : isToday
+        ? emeraldColor
+        : isDisabled
+          ? (isDark ? '#334155' : '#CBD5E1')
+          : (isDark ? '#F8FAFC' : '#0F172A');
+
+    return (
+      <TouchableOpacity
+        onPress={() => !isDisabled && setSelectedDate(dateString)}
+        activeOpacity={isDisabled ? 1 : 0.5}
+        style={styles.dayContainer}
+      >
+        <View
+          style={[
+            styles.dayCircle,
+            isSelected && { backgroundColor: emeraldColor },
+          ]}
+        >
+          <Text style={[styles.dayText, { color: textColor }]}>
+            {date.day}
+          </Text>
+        </View>
+        <View style={styles.dotsRow}>
+          {dots.map((dot: { key: string; color: string }) => (
+            <View
+              key={dot.key}
+              style={[styles.dot, { backgroundColor: dot.color }]}
+            />
+          ))}
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   const mealsByDate = useMemo(() => {
     if (!planItems || planItems.length === 0) return [];
@@ -128,22 +163,18 @@ export default function CalendarScreen() {
       {viewMode === 'month' ? (
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
           <Calendar
+            key={`${selectedDate}-${isDark}`}
             current={selectedDate}
             onDayPress={(day: { dateString: string }) => setSelectedDate(day.dateString)}
-            markingType="multi-dot"
             markedDates={markedDates}
+            dayComponent={renderDay}
             theme={{
               backgroundColor: 'transparent',
               calendarBackground: 'transparent',
               textSectionTitleColor: isDark ? '#94A3B8' : '#64748B',
-              dayTextColor: isDark ? '#F8FAFC' : '#0F172A',
-              todayTextColor: emeraldColor,
               monthTextColor: isDark ? '#F8FAFC' : '#0F172A',
               arrowColor: emeraldColor,
-              textDisabledColor: isDark ? '#334155' : '#CBD5E1',
               textMonthFontWeight: '700',
-              textDayFontWeight: '500',
-              textDayFontSize: 15,
             }}
           />
 
@@ -275,3 +306,11 @@ export default function CalendarScreen() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  dayContainer: { alignItems: 'center', justifyContent: 'center', height: 46, width: 32 },
+  dayCircle: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  dayText: { fontSize: 15, fontWeight: '500' },
+  dotsRow: { flexDirection: 'row', gap: 2, marginTop: 2, height: 8, alignItems: 'center' },
+  dot: { width: 6, height: 6, borderRadius: 3 },
+});
