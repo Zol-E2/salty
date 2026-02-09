@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './useAuth';
 import { MealPlanItem, MealSlotType } from '../lib/types';
+import { mealPlanItemSchema } from '../lib/validation';
 
 export function useMealPlanForMonth(year: number, month: number) {
   const { user } = useAuth();
@@ -55,19 +56,18 @@ export function useAddMealToPlan() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      meal_id,
-      date,
-      slot,
-    }: {
+    mutationFn: async (input: {
       meal_id: string;
       date: string;
       slot: MealSlotType;
     }) => {
+      // Validate uuid format, date format, and slot enum
+      const validated = mealPlanItemSchema.parse(input);
+
       const { data, error } = await supabase
         .from('meal_plan_items')
         .upsert(
-          { user_id: user!.id, meal_id, date, slot },
+          { user_id: user!.id, meal_id: validated.meal_id, date: validated.date, slot: validated.slot },
           { onConflict: 'user_id,date,slot' }
         )
         .select('*, meal:meals(*)')

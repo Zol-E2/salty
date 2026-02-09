@@ -6,13 +6,15 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "supabase:functions:serve": "npx supabase functions serve",
+    "supabase:functions:deploy": "npx supabase functions deploy generate-meal-plan --no-verify-jwt"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
     "@react-navigation/bottom-tabs": "^7.3.10",
     "@supabase/supabase-js": "^2.49.4",
-    "@tanstack/react-query": "^5.72.2",
+    "@tanstack/react-query": "^5.90.20",
     "babel-preset-expo": "~54.0.10",
     "expo": "~54.0.33",
     "expo-auth-session": "~7.0.10",
@@ -32,6 +34,7 @@
     "react-native-screens": "~4.16.0",
     "react-native-svg": "15.12.1",
     "react-native-web": "^0.21.0",
+    "zod": "^4.3.6",
     "zustand": "^5.0.3"
   },
   "devDependencies": {

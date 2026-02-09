@@ -2,12 +2,15 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './useAuth';
 import { Meal } from '../lib/types';
+import { mealCreateSchema, searchQuerySchema } from '../lib/validation';
 
 export function useMeals(search?: string) {
   const { user } = useAuth();
+  // Sanitize search input: trim and enforce length limit
+  const sanitizedSearch = search ? searchQuerySchema.parse(search) : undefined;
 
   return useQuery({
-    queryKey: ['meals', user?.id, search],
+    queryKey: ['meals', user?.id, sanitizedSearch],
     queryFn: async () => {
       let query = supabase
         .from('meals')
@@ -15,8 +18,8 @@ export function useMeals(search?: string) {
         .eq('user_id', user!.id)
         .order('created_at', { ascending: false });
 
-      if (search) {
-        query = query.ilike('name', `%${search}%`);
+      if (sanitizedSearch) {
+        query = query.ilike('name', `%${sanitizedSearch}%`);
       }
 
       const { data, error } = await query;
@@ -53,9 +56,12 @@ export function useCreateMeal() {
 
   return useMutation({
     mutationFn: async (meal: Omit<Meal, 'id' | 'user_id' | 'created_at'>) => {
+      // Validate all meal fields before inserting
+      const validated = mealCreateSchema.parse(meal);
+
       const { data, error } = await supabase
         .from('meals')
-        .insert({ ...meal, user_id: user!.id })
+        .insert({ ...validated, user_id: user!.id })
         .select()
         .single();
 

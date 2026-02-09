@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, Image } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -29,28 +29,12 @@ export default function MealDetailScreen() {
   return (
     <SafeAreaView className="flex-1 bg-stone-50 dark:bg-slate-950">
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* Header image */}
-        {meal.image_url ? (
-          <View className="relative">
-            <Image
-              source={{ uri: meal.image_url }}
-              className="w-full h-64"
-              resizeMode="cover"
-            />
-            <TouchableOpacity
-              onPress={() => router.back()}
-              className="absolute top-4 left-4 w-10 h-10 bg-black/30 rounded-full items-center justify-center"
-            >
-              <Ionicons name="arrow-back" size={22} color="white" />
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View className="px-5 pt-4 flex-row items-center">
-            <TouchableOpacity onPress={() => router.back()} className="mr-3">
-              <Ionicons name="arrow-back" size={24} color="#64748B" />
-            </TouchableOpacity>
-          </View>
-        )}
+        {/* Back button */}
+        <View className="px-5 pt-4 flex-row items-center">
+          <TouchableOpacity onPress={() => router.back()} className="mr-3">
+            <Ionicons name="arrow-back" size={24} color="#64748B" />
+          </TouchableOpacity>
+        </View>
 
         <View className="px-5 pt-5 pb-8">
           {/* Title & badges */}

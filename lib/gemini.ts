@@ -1,111 +1,90 @@
+// Meal plan generation via Supabase Edge Function
+// The Gemini API key is stored server-side only - never exposed to the client
+
+import { supabase } from './supabase';
 import { GenerateMealPlanRequest, GeneratedMeal } from './types';
+import { generateMealPlanSchema, validate } from './validation';
 
-const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY ?? '';
-const GEMINI_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
-
-export async function generateMealPlan(
-  request: GenerateMealPlanRequest
+async function callEdgeFunction(
+  body: GenerateMealPlanRequest
 ): Promise<GeneratedMeal[]> {
-  if (!GEMINI_API_KEY) {
-    throw new Error(
-      'Gemini API key is not configured. Set EXPO_PUBLIC_GEMINI_API_KEY in your .env.local file.'
-    );
+  const { data, error } = await supabase.functions.invoke(
+    'generate-meal-plan',
+    { body }
+  );
+
+  if (error) {
+    console.error('Edge function error:', JSON.stringify(error, null, 2));
+
+    const status = (error as any).context?.status;
+
+    if (status === 401) {
+      throw new Error('Your session has expired. Please sign in again.');
+    }
+
+    if (status === 429) {
+      throw new Error(
+        'You have generated too many meal plans recently. Please wait a bit and try again.'
+      );
+    }
+
+    if (status === 422) {
+      throw new Error(
+        'Response was cut short. Try generating a shorter meal plan (e.g. "day" instead of "week").'
+      );
+    }
+
+    if (status === 400) {
+      throw new Error(
+        'Invalid request. Please check your inputs and try again.'
+      );
+    }
+
+    throw new Error('Failed to generate meal plan. Please try again.');
   }
 
-  const {
-    timeframe,
-    budget,
-    max_cook_time,
-    servings,
-    dietary_restrictions,
-    available_ingredients,
-    skill_level,
-    daily_calories,
-  } = request;
+  if (!data?.meals) {
+    throw new Error('No meals were generated. Please try again.');
+  }
 
-  const prompt = `You are a meal planning assistant for university students on a tight budget.
-Generate a ${timeframe} meal plan with the following constraints:
-- Total budget: $${budget} USD for the ${timeframe}
-- Max cook time per meal: ${max_cook_time} minutes
-- Servings per meal: ${servings}
-- Dietary restrictions: ${dietary_restrictions.length > 0 ? dietary_restrictions.join(', ') : 'none'}
-- Cooking skill level: ${skill_level}
-- Available ingredients to prefer (use these first): ${available_ingredients.length > 0 ? available_ingredients.join(', ') : 'any common grocery items'}
-${daily_calories ? `- Daily calorie target: ${daily_calories} calories per day (distribute across all meals for the day.)` : ''}
-
-Generate ${timeframe === 'day' ? '3-4' : timeframe === 'week' ? '21' : '60'} meals covering breakfast, lunch, dinner${timeframe !== 'day' ? ', and snacks' : ''}.
-Keep meals simple, affordable, and student-friendly. Focus on cheap staples like rice, pasta, beans, eggs, frozen vegetables.
-
-Return ONLY valid JSON with no markdown formatting, no code fences, just the raw JSON object in this exact format:
-{
-  "meals": [
-    {
-      "name": "Meal Name",
-      "description": "Brief 1-sentence description",
-      "meal_type": "breakfast",
-      "day": 1,
-      "ingredients": [{"name": "rice", "quantity": "1", "unit": "cup", "estimated_cost": 0.30}],
-      "instructions": [{"step": 1, "text": "Step description"}],
-      "calories": 400,
-      "protein_g": 15,
-      "carbs_g": 50,
-      "fat_g": 10,
-      "estimated_cost": 2.50,
-      "prep_time_min": 5,
-      "cook_time_min": 15,
-      "difficulty": "easy",
-      "image_search_term": "fried rice with vegetables"
-    }
-  ]
+  return data.meals as GeneratedMeal[];
 }
 
-meal_type must be one of: breakfast, lunch, dinner, snack
-difficulty must be one of: easy, medium, hard
-day is the day number starting from 1
-Ensure the total cost of all meals stays within the $${budget} budget${daily_calories ? ` and the meals hit the daily calorie target: ${daily_calories} calories per day` : ''}.`;
+export async function generateMealPlan(
+  request: GenerateMealPlanRequest,
+  onProgress?: (current: number, total: number) => void
+): Promise<GeneratedMeal[]> {
+  // Validate input (including prompt injection checks) before sending
+  const validatedRequest = validate(generateMealPlanSchema, request);
 
-  const response = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 65536,
-        responseMimeType: 'application/json',
-      },
-    }),
-  });
+  const { data: { session } } = await supabase.auth.getSession();
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
+  if (!session) {
+    throw new Error('You must be signed in to generate meals.');
   }
 
-  const geminiData = await response.json();
+  // Monthly plans are too large for a single edge function call (timeout).
+  // Split into 4 weekly chunks and combine results.
+  if (validatedRequest.timeframe === 'month') {
+    const allMeals: GeneratedMeal[] = [];
+    const weeklyBudget = Math.round((validatedRequest.budget / 4) * 100) / 100;
 
-  const finishReason = geminiData.candidates?.[0]?.finishReason;
-  if (finishReason === 'MAX_TOKENS') {
-    throw new Error(
-      'Response was cut short. Try generating a shorter meal plan.'
-    );
+    for (let week = 0; week < 4; week++) {
+      onProgress?.(week + 1, 4);
+
+      const weekRequest: GenerateMealPlanRequest = {
+        ...validatedRequest,
+        timeframe: 'week',
+        budget: weeklyBudget,
+      };
+
+      const meals = await callEdgeFunction(weekRequest);
+      const offsetMeals = meals.map(m => ({ ...m, day: m.day + week * 7 }));
+      allMeals.push(...offsetMeals);
+    }
+
+    return allMeals;
   }
 
-  const textContent = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
-
-  if (!textContent) {
-    throw new Error('No content returned from Gemini');
-  }
-
-  let mealPlan;
-  try {
-    mealPlan = JSON.parse(textContent);
-  } catch {
-    throw new Error(
-      'Failed to parse meal plan response. Try generating again.'
-    );
-  }
-
-  return mealPlan.meals as GeneratedMeal[];
+  return callEdgeFunction(validatedRequest);
 }

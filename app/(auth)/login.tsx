@@ -10,6 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
+import { emailSchema } from '../../lib/validation';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 
@@ -19,11 +20,17 @@ export default function LoginScreen() {
   const router = useRouter();
 
   const handleSendOtp = async () => {
-    if (!email.trim()) return;
+    // Validate email format and length before sending
+    const result = emailSchema.safeParse(email);
+    if (!result.success) {
+      Alert.alert('Invalid Email', result.error.issues[0].message);
+      return;
+    }
 
+    const validatedEmail = result.data;
     setLoading(true);
     const { error } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
+      email: validatedEmail,
     });
     setLoading(false);
 
@@ -32,7 +39,7 @@ export default function LoginScreen() {
       return;
     }
 
-    router.push({ pathname: '/(auth)/verify', params: { email: email.trim() } });
+    router.push({ pathname: '/(auth)/verify', params: { email: validatedEmail } });
   };
 
   return (

@@ -7,7 +7,6 @@ import { SaltShakerLoader } from '../../components/ui/SaltShakerLoader';
 import { GenerateForm } from '../../components/generate/GenerateForm';
 import { GeneratePreview } from '../../components/generate/GeneratePreview';
 import { generateMealPlan } from '../../lib/gemini';
-import { fetchFoodImage } from '../../lib/unsplash';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../hooks/useAuth';
 import { GenerateMealPlanRequest, GeneratedMeal, MealSlotType } from '../../lib/types';
@@ -21,29 +20,27 @@ export default function GenerateScreen() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [generatedMeals, setGeneratedMeals] = useState<GeneratedMeal[] | null>(null);
-  const [imageUrls, setImageUrls] = useState<Record<string, string | null>>({});
   const [lastRequest, setLastRequest] = useState<GenerateMealPlanRequest | null>(null);
+  const [progress, setProgress] = useState<{ current: number; total: number } | null>(null);
 
   const handleGenerate = async (request: GenerateMealPlanRequest) => {
     setLastRequest(request);
     setLoading(true);
+    setProgress(null);
     try {
-      const meals = await generateMealPlan(request);
+      const meals = await generateMealPlan(request, (current, total) => {
+        setProgress({ current, total });
+      });
       setGeneratedMeals(meals);
-
-      // Fetch images in background
-      const uniqueTerms = [...new Set(meals.map((m) => m.image_search_term))];
-      const urls: Record<string, string | null> = {};
-      await Promise.all(
-        uniqueTerms.map(async (term) => {
-          urls[term] = await fetchFoodImage(term);
-        })
-      );
-      setImageUrls(urls);
     } catch (error: any) {
-      Alert.alert('Generation Failed', error.message || 'Something went wrong. Please try again.');
+      const message = error.message || 'Something went wrong. Please try again.';
+      Alert.alert(
+        message.includes('too many') ? 'Slow Down' : 'Generation Failed',
+        message
+      );
     } finally {
       setLoading(false);
+      setProgress(null);
     }
   };
 
@@ -66,7 +63,7 @@ export default function GenerateScreen() {
             user_id: user.id,
             name: meal.name,
             description: meal.description,
-            image_url: imageUrls[meal.image_search_term] ?? null,
+
             ingredients: meal.ingredients,
             instructions: meal.instructions,
             calories: meal.calories,
@@ -78,7 +75,7 @@ export default function GenerateScreen() {
             cook_time_min: meal.cook_time_min,
             difficulty: meal.difficulty,
             meal_type: [meal.meal_type],
-            tags: [],
+            tags: meal.tags || [],
             is_ai_generated: true,
           })
           .select()
@@ -108,7 +105,6 @@ export default function GenerateScreen() {
       queryClient.invalidateQueries({ queryKey: ['meal-plan-day'] });
 
       setGeneratedMeals(null);
-      setImageUrls({});
       router.push('/(tabs)/calendar');
     } catch (error: any) {
       Alert.alert('Save Failed', error.message || 'Could not save meal plan.');
@@ -119,13 +115,11 @@ export default function GenerateScreen() {
 
   const handleDiscard = () => {
     setGeneratedMeals(null);
-    setImageUrls({});
   };
 
   const handleTryAgain = () => {
     if (!lastRequest) return;
     setGeneratedMeals(null);
-    setImageUrls({});
     handleGenerate(lastRequest);
   };
 
@@ -148,8 +142,10 @@ export default function GenerateScreen() {
       <View className="flex-1 px-5 pt-4">
         {loading ? (
           <SaltShakerLoader
-            message="Generating your meals..."
-            submessage={"Our AI is crafting the perfect plan\nbased on your preferences"}
+            message={progress ? `Generating week ${progress.current} of ${progress.total}...` : 'Generating your meals...'}
+            submessage={progress
+              ? `Our AI is building your monthly plan\nweek by week for the best results`
+              : "Our AI is crafting the perfect plan\nbased on your preferences"}
           />
         ) : generatedMeals ? (
           <GeneratePreview
@@ -158,7 +154,6 @@ export default function GenerateScreen() {
             onDiscard={handleDiscard}
             onTryAgain={handleTryAgain}
             saving={saving}
-            imageUrls={imageUrls}
           />
         ) : (
           <GenerateForm onSubmit={handleGenerate} loading={loading} />

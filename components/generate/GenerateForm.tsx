@@ -1,4 +1,4 @@
-import { View, Text, Pressable, ScrollView, Animated } from 'react-native';
+import { View, Text, Pressable, ScrollView, Animated, Alert } from 'react-native';
 import { useState, useRef } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { Input } from '../ui/Input';
@@ -6,6 +6,7 @@ import { Button } from '../ui/Button';
 import { GenerateMealPlanRequest, DietaryRestriction } from '../../lib/types';
 import { DIETARY_OPTIONS } from '../../lib/constants';
 import { useProfile } from '../../hooks/useProfile';
+import { generateMealPlanSchema } from '../../lib/validation';
 
 interface GenerateFormProps {
   onSubmit: (request: GenerateMealPlanRequest) => void;
@@ -132,11 +133,11 @@ export function GenerateForm({ onSubmit, loading }: GenerateFormProps) {
   );
 
   const handleSubmit = () => {
-    onSubmit({
+    const request = {
       timeframe,
-      budget: parseFloat(budget) || 50,
-      max_cook_time: parseInt(maxCookTime) || 30,
-      servings: parseInt(servings) || 1,
+      budget: parseFloat(budget) || 0,
+      max_cook_time: parseInt(maxCookTime) || 0,
+      servings: parseInt(servings) || 0,
       daily_calories: dailyCalories ? parseInt(dailyCalories) : undefined,
       dietary_restrictions: dietary,
       available_ingredients: ingredients
@@ -144,7 +145,16 @@ export function GenerateForm({ onSubmit, loading }: GenerateFormProps) {
         .map((s) => s.trim())
         .filter(Boolean),
       skill_level: profile?.skill_level ?? 'beginner',
-    });
+    };
+
+    // Validate all inputs (ranges, types, prompt injection on ingredients)
+    const result = generateMealPlanSchema.safeParse(request);
+    if (!result.success) {
+      Alert.alert('Invalid Input', result.error.issues[0].message);
+      return;
+    }
+
+    onSubmit(result.data);
   };
 
   return (

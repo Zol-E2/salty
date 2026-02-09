@@ -2,16 +2,24 @@
     "cSpell.words": [
         "apikey",
         "COOLDOWN",
+        "ehthumbs",
         "Erub",
         "Lhxlfp",
         "mobileprovision",
         "nativewind",
         "plpgsql",
+        "prebuild",
         "Pressable",
         "signup",
         "submessage",
         "SUPABASE",
         "Swnl",
         "XVCJ"
-    ]
+    ],
+    "deno.enable": true,
+    "deno.lint": true,
+    "deno.enablePaths": [
+        "supabase/functions"
+    ],
+    "deno.config": "supabase/functions/deno.json"
 }

@@ -37,7 +37,7 @@ export interface Meal {
   user_id: string;
   name: string;
   description: string;
-  image_url: string | null;
+
   ingredients: Ingredient[];
   instructions: InstructionStep[];
   calories: number;
@@ -92,5 +92,5 @@ export interface GeneratedMeal {
   prep_time_min: number;
   cook_time_min: number;
   difficulty: 'easy' | 'medium' | 'hard';
-  image_search_term: string;
+  tags: string[];
 }

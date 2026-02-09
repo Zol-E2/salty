@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './useAuth';
 import { Profile } from '../lib/types';
+import { profileUpdateSchema } from '../lib/validation';
 
 export function useProfile() {
   const { user } = useAuth();
@@ -28,9 +29,13 @@ export function useUpdateProfile() {
 
   return useMutation({
     mutationFn: async (updates: Partial<Profile>) => {
+      // Validate and strip unexpected fields (id, email, created_at blocked by .strict())
+      const validated = profileUpdateSchema.parse(updates);
+
+      // updated_at is now handled automatically by database trigger
       const { data, error } = await supabase
         .from('profiles')
-        .update({ ...updates, updated_at: new Date().toISOString() })
+        .update(validated)
         .eq('id', user!.id)
         .select()
         .single();

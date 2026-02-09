@@ -1,4 +1,4 @@
-import { TouchableOpacity, View, Text, Image } from 'react-native';
+import { TouchableOpacity, View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { MealPlanItem, MealSlotType } from '../../lib/types';
 import { SLOT_COLORS } from '../../lib/constants';
@@ -42,12 +42,6 @@ export function MealSlot({ slot, item, onPress, onRemove }: MealSlotProps) {
 
       {item?.meal ? (
         <View className="flex-1 flex-row items-center">
-          {item.meal.image_url ? (
-            <Image
-              source={{ uri: item.meal.image_url }}
-              className="w-10 h-10 rounded-lg mr-3"
-            />
-          ) : null}
           <View className="flex-1">
             <Text className="text-xs font-medium uppercase tracking-wider mb-0.5" style={{ color }}>
               {SLOT_LABELS[slot]}

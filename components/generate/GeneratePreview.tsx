@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { GeneratedMeal } from '../../lib/types';
 import { SLOT_COLORS } from '../../lib/constants';
@@ -11,7 +11,6 @@ interface GeneratePreviewProps {
   onDiscard: () => void;
   onTryAgain: () => void;
   saving: boolean;
-  imageUrls: Record<string, string | null>;
 }
 
 export function GeneratePreview({
@@ -20,7 +19,6 @@ export function GeneratePreview({
   onDiscard,
   onTryAgain,
   saving,
-  imageUrls,
 }: GeneratePreviewProps) {
   const groupedByDay = meals.reduce(
     (acc, meal) => {
@@ -74,16 +72,9 @@ export function GeneratePreview({
                 return (
                   <AnimatedCard key={idx} index={cardIndex}>
                     <View className="flex-row items-center bg-white dark:bg-slate-900 rounded-xl p-3 border border-slate-100 dark:border-slate-800 mb-2">
-                      {imageUrls[meal.image_search_term] ? (
-                        <Image
-                          source={{ uri: imageUrls[meal.image_search_term]! }}
-                          className="w-12 h-12 rounded-lg mr-3"
-                        />
-                      ) : (
-                        <View className="w-12 h-12 rounded-lg bg-primary-50 dark:bg-primary-900/30 items-center justify-center mr-3">
-                          <Ionicons name="restaurant" size={18} color="#10B981" />
-                        </View>
-                      )}
+                      <View className="w-12 h-12 rounded-lg bg-primary-50 dark:bg-primary-900/30 items-center justify-center mr-3">
+                        <Ionicons name="restaurant" size={18} color="#10B981" />
+                      </View>
                       <View className="flex-1">
                         <View className="flex-row items-center mb-0.5">
                           <View
