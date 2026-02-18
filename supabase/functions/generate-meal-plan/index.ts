@@ -202,11 +202,24 @@ Deno.serve(async (req) => {
     const geminiData = await geminiResponse.json();
 
     const finishReason = geminiData.candidates?.[0]?.finishReason;
-    if (finishReason === 'MAX_TOKENS') {
+    if (finishReason && finishReason !== 'STOP') {
+      console.error(`Gemini finish reason: ${finishReason}`);
+      if (finishReason === 'SAFETY' || finishReason === 'RECITATION') {
+        return new Response(
+          JSON.stringify({
+            error:
+              'The request was blocked by content filters. Please adjust your inputs and try again.',
+          }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
+      }
       return new Response(
         JSON.stringify({
           error:
-            'Response was cut short. Try generating a shorter meal plan.',
+            'Response was cut short. Try generating a shorter meal plan (e.g. "day" instead of "week").',
         }),
         {
           status: 422,
@@ -228,6 +241,8 @@ Deno.serve(async (req) => {
         }
       );
     }
+
+    console.log(`Gemini response: finishReason=${finishReason}, length=${textContent.length}`);
 
     let mealPlan;
     try {

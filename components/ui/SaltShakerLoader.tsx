@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState, useCallback, memo } from 'react';
 import { View, Text, Animated, Easing } from 'react-native';
+import { TypewriterTips } from './TypewriterTips';
+import { GenerationPhases } from './GenerationPhases';
 
 interface SaltShakerLoaderProps {
   message?: string;
   submessage?: string;
+  showTips?: boolean;
+  timeframe?: 'day' | 'week' | 'month';
 }
 
 interface ParticleDescriptor {
@@ -87,6 +91,8 @@ const SaltParticle = memo(function SaltParticle({
 export function SaltShakerLoader({
   message = 'Generating your meals...',
   submessage = 'Our AI is crafting the perfect plan\nbased on your preferences',
+  showTips = false,
+  timeframe,
 }: SaltShakerLoaderProps) {
   const rotation = useRef(new Animated.Value(BASE_ANGLE)).current;
   const containerScale = useRef(new Animated.Value(1)).current;
@@ -252,16 +258,29 @@ export function SaltShakerLoader({
           ))}
         </View>
       </View>
-      {message !== '' && (
-        <Text className="text-lg font-semibold text-slate-900 dark:text-white mb-2 mt-6">
-          {message}
-        </Text>
-      )}
-      {submessage !== '' && (
+      <View className="mt-6 mb-2 items-center">
+        {timeframe ? (
+          <>
+            <GenerationPhases timeframe={timeframe} />
+            {message !== 'Generating your meals...' && message !== '' && (
+              <Text className="text-sm text-slate-500 dark:text-slate-400 text-center mt-2">
+                {message}
+              </Text>
+            )}
+          </>
+        ) : message !== '' ? (
+          <Text className="text-lg font-semibold text-slate-900 dark:text-white">
+            {message}
+          </Text>
+        ) : null}
+      </View>
+      {showTips ? (
+        <TypewriterTips />
+      ) : !timeframe && submessage !== '' ? (
         <Text className="text-sm text-slate-500 dark:text-slate-400 text-center">
           {submessage}
         </Text>
-      )}
+      ) : null}
     </View>
   );
 }

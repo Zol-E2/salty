@@ -143,9 +143,8 @@ export default function GenerateScreen() {
         {loading ? (
           <SaltShakerLoader
             message={progress ? `Generating week ${progress.current} of ${progress.total}...` : 'Generating your meals...'}
-            submessage={progress
-              ? `Our AI is building your monthly plan\nweek by week for the best results`
-              : "Our AI is crafting the perfect plan\nbased on your preferences"}
+            showTips
+            timeframe={lastRequest?.timeframe}
           />
         ) : generatedMeals ? (
           <GeneratePreview
