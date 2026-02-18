@@ -46,7 +46,7 @@ function FlowGuard() {
     <Stack
       screenOptions={{
         headerShown: false,
-        animation: 'fade_from_bottom',
+        animation: 'slide_from_right',
         animationDuration: 250,
       }}
     >

@@ -13,6 +13,7 @@ interface ParticleDescriptor {
 const BASE_ANGLE = -130;
 const PARTICLE_BURST_COUNT = 7;
 const PARTICLE_STAGGER = 70;
+const SALT_COLORS = ['#FFFFFF', '#F5F5F0', '#E8E5E0', '#D4D4CC'];
 
 const SaltParticle = memo(function SaltParticle({
   id,
@@ -29,6 +30,7 @@ const SaltParticle = memo(function SaltParticle({
   const fallDistance = useRef(40 + Math.random() * 25).current;
   const driftX = useRef(-5 + Math.random() * -15).current;
   const fallDuration = useRef(400 + Math.random() * 200).current;
+  const color = useRef(SALT_COLORS[Math.floor(Math.random() * SALT_COLORS.length)]).current;
 
   useEffect(() => {
     Animated.parallel([
@@ -74,7 +76,7 @@ const SaltParticle = memo(function SaltParticle({
         width: size,
         height: size,
         borderRadius: size / 2,
-        backgroundColor: '#10B981',
+        backgroundColor: color,
         transform: [{ translateX }, { translateY }],
         opacity,
       }}
@@ -230,7 +232,7 @@ export function SaltShakerLoader({
             justifyContent: 'center',
             transform: [{ scale: containerScale }],
           }}
-          className="bg-primary-50 dark:bg-primary-400/10"
+          className="bg-stone-100 dark:bg-white/5"
         >
           <Animated.View style={{ transform: [{ rotate: rotateInterpolation }] }}>
             <Text style={{ fontSize: 48 }}>🧂</Text>
