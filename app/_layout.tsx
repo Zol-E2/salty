@@ -48,6 +48,9 @@ function FlowGuard() {
         headerShown: false,
         animation: 'slide_from_right',
         animationDuration: 250,
+        gestureEnabled: true,
+        gestureDirection: 'horizontal',
+        fullScreenGestureEnabled: true,
       }}
     >
       <Stack.Screen name="(tabs)" />
@@ -59,6 +62,7 @@ function FlowGuard() {
           presentation: 'modal',
           animation: 'slide_from_bottom',
           animationDuration: 300,
+          gestureDirection: 'vertical',
         }}
       />
       <Stack.Screen

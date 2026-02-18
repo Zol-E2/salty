@@ -11,8 +11,8 @@ interface ParticleDescriptor {
 }
 
 const BASE_ANGLE = -130;
-const PARTICLE_BURST_COUNT = 7;
-const PARTICLE_STAGGER = 70;
+const PARTICLE_BURST_COUNT = 10;
+const PARTICLE_STAGGER = 55;
 const SALT_COLORS = ['#FFFFFF', '#F5F5F0', '#E8E5E0', '#D4D4CC'];
 
 const SaltParticle = memo(function SaltParticle({
@@ -232,7 +232,7 @@ export function SaltShakerLoader({
             justifyContent: 'center',
             transform: [{ scale: containerScale }],
           }}
-          className="bg-stone-100 dark:bg-white/5"
+          className="bg-primary-50 dark:bg-primary-400/10"
         >
           <Animated.View style={{ transform: [{ rotate: rotateInterpolation }] }}>
             <Text style={{ fontSize: 48 }}>🧂</Text>

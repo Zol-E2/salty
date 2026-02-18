@@ -55,7 +55,7 @@ export default function TabsLayout() {
       backBehavior="history"
       screenOptions={{
         headerShown: false,
-        animation: 'shift',
+        animation: 'fade',
         tabBarActiveTintColor: isDark ? '#34D399' : '#10B981',
         tabBarInactiveTintColor: isDark ? '#64748B' : '#94A3B8',
         tabBarStyle: {
