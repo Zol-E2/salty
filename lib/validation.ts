@@ -1,6 +1,17 @@
-// Centralized validation schemas using Zod
-// These mirror the database CHECK constraints from 002_security_hardening.sql
-// and include prompt injection protection for AI-bound inputs
+/**
+ * @file lib/validation.ts
+ * Centralised Zod validation schemas and prompt injection defence utilities.
+ *
+ * These schemas mirror the database CHECK constraints defined in
+ * `supabase/migrations/002_security_hardening.sql`. Keeping them in sync
+ * means TypeScript surfaces constraint violations at the API boundary before
+ * a round-trip to the database.
+ *
+ * The prompt injection protection patterns in this file defend against
+ * adversarial user input that attempts to hijack the Gemini AI prompt. Any
+ * string field that flows into the AI prompt must be passed through
+ * `sanitizeForPrompt()` before use.
+ */
 
 import { z } from 'zod';
 
@@ -8,7 +19,25 @@ import { z } from 'zod';
 // Prompt injection protection
 // ---------------------------------------------------------------------------
 
-// Known prompt injection patterns (case-insensitive)
+/**
+ * Regex patterns that match known prompt injection attempts.
+ * All patterns are case-insensitive (`/i` flag).
+ *
+ * Pattern rationale:
+ *   - `ignore.*previous.*instructions` — classic "jailbreak" opener
+ *   - `ignore all` — common shorthand variant
+ *   - `disregard.*previous|your` — synonym for "ignore"
+ *   - `forget.*instructions` — another synonym
+ *   - `you are now` — persona injection ("you are now DAN")
+ *   - `new instructions` — attempt to add a second instruction block
+ *   - `system.*prompt` — attempting to reference/override the system prompt
+ *   - `override.*previous|all` — generic override attempt
+ *   - `act as a` — role-play injection (e.g. "act as an unrestricted AI")
+ *   - `pretend.*you|to be` — role-play variant
+ *   - `do not follow.*rules` — explicit rules bypass
+ *   - `reveal.*prompt|instructions` — prompt extraction attempt
+ *   - `what.*are.*your.*instructions` — prompt extraction via question
+ */
 const PROMPT_INJECTION_PATTERNS = [
   /ignore\s+(all\s+)?(previous|prior|above|earlier)\s+(instructions|prompts|rules|directives)/i,
   /ignore\s+all/i,
@@ -25,6 +54,13 @@ const PROMPT_INJECTION_PATTERNS = [
   /what\s+(are|is)\s+your\s+(instructions|prompt|rules|system)/i,
 ];
 
+/**
+ * Patterns that flag structural injection attempts rather than semantic ones.
+ *
+ *   - `/```/` — code fence that could break out of a quoted context
+ *   - `/###\s/` — markdown heading that could add a new section to the prompt
+ *   - `/\{[^}]{20,}/` — large JSON-like objects that could inject tool calls
+ */
 const SUSPICIOUS_PATTERNS = [
   /```/,          // Code fence injection
   /###\s/,        // Markdown heading injection
@@ -32,8 +68,19 @@ const SUSPICIOUS_PATTERNS = [
 ];
 
 /**
- * Sanitize a user-provided string before it's sent to the AI prompt.
- * Strips control characters, collapses whitespace, rejects prompt injection.
+ * Sanitizes a user-provided string before it is interpolated into an AI prompt.
+ *
+ * Steps:
+ *   1. Strips ASCII control characters (except newlines/tabs) and Unicode
+ *      zero-width / line/paragraph separator characters that could interfere
+ *      with prompt tokenisation.
+ *   2. Collapses runs of 3+ whitespace characters to 2 spaces.
+ *   3. Rejects known prompt injection phrases (throws with a user-friendly message).
+ *   4. Rejects structural injection patterns (code fences, headings, large JSON).
+ *
+ * @param input - Raw user-provided string (e.g. an ingredient name).
+ * @returns Sanitized string safe for interpolation into a prompt.
+ * @throws {Error} If the input contains disallowed content or invalid characters.
  */
 export function sanitizeForPrompt(input: string): string {
   // Strip control characters and zero-width characters
@@ -91,6 +138,7 @@ const VALID_GOALS = [
 // Email validation
 // ---------------------------------------------------------------------------
 
+/** Schema for the login email field — trims whitespace and validates RFC format. */
 export const emailSchema = z
   .string()
   .trim()
@@ -102,12 +150,18 @@ export const emailSchema = z
 // Meal generation request (with prompt injection checks on string fields)
 // ---------------------------------------------------------------------------
 
+/**
+ * Per-ingredient string schema: trims, sanitizes for prompt injection,
+ * and enforces a 100-character limit. The `.pipe()` re-validates after
+ * transformation to catch cases where sanitization produces an empty string.
+ */
 const safeIngredientString = z
   .string()
   .max(100, 'Each ingredient must be 100 characters or less')
   .transform((val) => sanitizeForPrompt(val.trim()))
   .pipe(z.string().min(1, 'Ingredient cannot be empty'));
 
+/** Validates the full meal generation request before sending to the edge function. */
 export const generateMealPlanSchema = z.object({
   timeframe: z.enum(VALID_TIMEFRAMES),
   budget: z
@@ -127,9 +181,14 @@ export const generateMealPlanSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Profile update (strict - rejects unexpected fields like id, email, created_at)
+// Profile update (strict — rejects unexpected fields)
 // ---------------------------------------------------------------------------
 
+/**
+ * Validates profile update payloads.
+ * `.strict()` rejects any key not listed here (e.g. `id`, `email`,
+ * `created_at`) preventing accidental or malicious field injection.
+ */
 export const profileUpdateSchema = z
   .object({
     display_name: z.string().max(100).trim().optional().nullable(),
@@ -145,6 +204,7 @@ export const profileUpdateSchema = z
 // Meal creation
 // ---------------------------------------------------------------------------
 
+/** Schema for a single ingredient object stored in `meals.ingredients`. */
 const ingredientSchema = z.object({
   name: z.string().min(1).max(200),
   quantity: z.string().max(50),
@@ -152,11 +212,13 @@ const ingredientSchema = z.object({
   estimated_cost: z.number().min(0).max(10000),
 });
 
+/** Schema for a single instruction step stored in `meals.instructions`. */
 const instructionStepSchema = z.object({
   step: z.number().int().min(1),
   text: z.string().min(1).max(2000),
 });
 
+/** Validates the full payload before inserting a new meal into Supabase. */
 export const mealCreateSchema = z.object({
   name: z.string().min(1, 'Meal name is required').max(200),
   description: z.string().max(2000).optional().default(''),
@@ -180,6 +242,7 @@ export const mealCreateSchema = z.object({
 // Meal plan item
 // ---------------------------------------------------------------------------
 
+/** Validates a meal plan item before upserting into `meal_plan_items`. */
 export const mealPlanItemSchema = z.object({
   meal_id: z.string().uuid('Invalid meal ID'),
   date: z
@@ -192,12 +255,24 @@ export const mealPlanItemSchema = z.object({
 // Search query
 // ---------------------------------------------------------------------------
 
+/** Trims and enforces a length cap on search query strings before they hit Supabase. */
 export const searchQuerySchema = z.string().max(200).trim();
 
 // ---------------------------------------------------------------------------
-// Helper: validate and return typed result or throw user-friendly error
+// Helper: validate or throw
 // ---------------------------------------------------------------------------
 
+/**
+ * Parses `data` against `schema` using `safeParse` and returns the typed result.
+ * Throws a user-friendly `Error` with the first validation issue's message if
+ * parsing fails. Prefer this over calling `.parse()` directly in hooks/screens
+ * so error messages are consistent across the app.
+ *
+ * @param schema - Any Zod schema.
+ * @param data - The value to validate.
+ * @returns The parsed, typed value.
+ * @throws {Error} With the first validation issue message if validation fails.
+ */
 export function validate<T>(schema: z.ZodType<T>, data: unknown): T {
   const result = schema.safeParse(data);
   if (!result.success) {

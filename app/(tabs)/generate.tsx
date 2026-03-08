@@ -1,3 +1,27 @@
+/**
+ * @file app/(tabs)/generate.tsx
+ * AI meal generation tab — a 3-state finite state machine (FSM).
+ *
+ * Route: `/(tabs)/generate`
+ * States:
+ *   1. **form** (`!loading && !generatedMeals`) — `GenerateForm` collects
+ *      budget, cook time, servings, dietary restrictions, and ingredients.
+ *   2. **loading** (`loading === true`) — `SaltShakerLoader` with optional
+ *      monthly progress indicator (`progress.current / progress.total`).
+ *   3. **preview** (`generatedMeals !== null`) — `GeneratePreview` shows the
+ *      generated meals; the user can save, discard, or try again.
+ *
+ * Save behaviour (`handleSave`):
+ *   For each generated meal, two Supabase inserts are made:
+ *     1. `meals` — stores the full meal recipe.
+ *     2. `meal_plan_items` — assigns the meal to `today + meal.day - 1`
+ *        in the correct slot.
+ *   Note: `meal_type: [meal.meal_type]` wraps the single `MealSlotType` in an
+ *   array because `Meal.meal_type` is defined as `MealSlotType[]` in the
+ *   database schema. This is intentional — a saved meal can later be assigned
+ *   to multiple slots.
+ */
+
 import { useState } from 'react';
 import { View, Text, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -74,6 +98,9 @@ export default function GenerateScreen() {
             prep_time_min: meal.prep_time_min,
             cook_time_min: meal.cook_time_min,
             difficulty: meal.difficulty,
+            // Wrap in array: GeneratedMeal.meal_type is a single MealSlotType,
+            // but Meal.meal_type is MealSlotType[] (a meal can suit multiple slots).
+            // This is architecturally correct — not a mistake.
             meal_type: [meal.meal_type],
             tags: meal.tags || [],
             is_ai_generated: true,

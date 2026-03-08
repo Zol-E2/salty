@@ -1,3 +1,13 @@
+/**
+ * @file app/(onboarding)/welcome.tsx
+ * Onboarding step 0 of 6 — the first screen a new user sees.
+ *
+ * Route: `/(onboarding)/welcome`
+ * Displays the Salty logo, app name, and a brief tagline. Tapping "Get Started"
+ * advances to the goals selection screen (`/(onboarding)/goals`).
+ * No state is modified here; this is a purely presentational entry point.
+ */
+
 import { View, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';

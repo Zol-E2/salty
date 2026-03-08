@@ -1,3 +1,18 @@
+/**
+ * @file app/meal/[id].tsx
+ * Meal detail screen — shows the full recipe for a single saved meal.
+ *
+ * Route: `/meal/[id]` (e.g. `/meal/uuid-here`)
+ * Presentation: modal (slide_from_bottom), registered in `app/_layout.tsx`.
+ *
+ * Displays: meal name, description, type/difficulty/AI badges, quick stats
+ * (prep time, cook time, cost, difficulty), macro bar, ingredient list with
+ * total estimated cost, and step-by-step cooking instructions.
+ *
+ * The `useMeal` query includes a `user_id` guard so users cannot view meals
+ * belonging to other accounts even if they construct a URL manually.
+ */
+
 import { View, Text, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';

@@ -1,3 +1,19 @@
+/**
+ * @file app/day/[date].tsx
+ * Day detail screen — shows all four meal slots for a specific calendar day
+ * and a nutritional/cost/time summary card.
+ *
+ * Route: `/day/[date]` (e.g. `/day/2025-03-15`)
+ * Key patterns:
+ *   - Date formatting: `date + 'T12:00:00'` appended before constructing a
+ *     `Date` object to avoid UTC timezone shifting the date by one day.
+ *   - Slot routing: tapping a filled slot navigates to `/meal/[id]`;
+ *     tapping an empty slot navigates to `/meal/add?date=...&slot=...`.
+ *   - Remove: triggers an Alert confirmation then calls `useRemoveMealFromPlan`.
+ *   - Summary card: only visible when at least one slot is filled; aggregates
+ *     calories, cost, and total time across all items for the day.
+ */
+
 import { View, Text, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';

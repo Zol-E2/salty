@@ -1,3 +1,22 @@
+/**
+ * @file app/settings.tsx
+ * Settings screen — lets authenticated users update their meal preferences,
+ * change the app theme, and access the danger zone (delete plans / account).
+ *
+ * State initialisation:
+ *   Local state is seeded once from the Supabase profile (if authenticated) or
+ *   from `onboardingStore` (if offline / unauthenticated). The `initialized`
+ *   flag prevents re-seeding on subsequent re-renders.
+ *
+ * Save behaviour:
+ *   `handleSave` writes to both Supabase (authenticated users) and the local
+ *   `onboardingStore`, keeping them in sync.
+ *
+ * Danger zone:
+ *   Both "Delete All Meal Plans" and "Delete Account" show a double-confirm
+ *   Alert chain before performing any irreversible action.
+ */
+
 import { useState, useEffect } from 'react';
 import {
   View,
@@ -18,9 +37,10 @@ import { supabase } from '../lib/supabase';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { GoalOption } from '../components/onboarding/GoalOption';
-import { SKILL_LEVELS, DIETARY_OPTIONS } from '../lib/constants';
+import { PreferencesForm } from '../components/forms/PreferencesForm';
 import { DietaryRestriction, Profile } from '../lib/types';
 
+/** Goal options displayed in the Goal card. */
 const GOAL_DATA: {
   key: string;
   label: string;
@@ -53,8 +73,7 @@ const GOAL_DATA: {
   },
 ];
 
-const BUDGET_OPTIONS = [30, 40, 50, 75, 100];
-
+/** Settings screen — goal, preferences, appearance, danger zone. */
 export default function SettingsScreen() {
   const router = useRouter();
   const { user, isAuthenticated, signOut } = useAuth();
@@ -67,12 +86,11 @@ export default function SettingsScreen() {
   const [goal, setGoal] = useState('');
   const [weeklyBudget, setWeeklyBudget] = useState(50);
   const [skillLevel, setSkillLevel] = useState('');
-  const [dietaryRestrictions, setDietaryRestrictions] = useState<
-    DietaryRestriction[]
-  >([]);
+  const [dietaryRestrictions, setDietaryRestrictions] = useState<DietaryRestriction[]>([]);
   const [initialized, setInitialized] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // Seed local state once from the authoritative source (profile > store)
   useEffect(() => {
     if (initialized) return;
     if (isAuthenticated && profileLoading) return;
@@ -86,12 +104,7 @@ export default function SettingsScreen() {
     setInitialized(true);
   }, [profile, profileLoading, isAuthenticated, initialized]);
 
-  const toggleRestriction = (key: DietaryRestriction) => {
-    setDietaryRestrictions((prev) =>
-      prev.includes(key) ? prev.filter((r) => r !== key) : [...prev, key]
-    );
-  };
-
+  /** Saves changes to Supabase (if authenticated) and to the local onboarding store. */
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -118,6 +131,10 @@ export default function SettingsScreen() {
     }
   };
 
+  /**
+   * Double-confirm Alert chain before deleting all meal plan items.
+   * Does NOT delete the saved meal recipes themselves.
+   */
   const handleDeleteAllMealPlans = () => {
     Alert.alert(
       'Delete All Meal Plans?',
@@ -139,15 +156,9 @@ export default function SettingsScreen() {
                   onPress: async () => {
                     try {
                       await deleteAllMealPlans.mutateAsync();
-                      Alert.alert(
-                        'Done',
-                        'All meal plans have been deleted.'
-                      );
+                      Alert.alert('Done', 'All meal plans have been deleted.');
                     } catch {
-                      Alert.alert(
-                        'Error',
-                        'Failed to delete meal plans. Please try again.'
-                      );
+                      Alert.alert('Error', 'Failed to delete meal plans. Please try again.');
                     }
                   },
                 },
@@ -159,6 +170,11 @@ export default function SettingsScreen() {
     );
   };
 
+  /**
+   * Double-confirm Alert chain before permanently deleting the user's account.
+   * Deletes the profile row from Supabase, resets local onboarding store, then
+   * signs out — cascading deletes on the database handle meals and plan items.
+   */
   const handleDeleteAccount = () => {
     Alert.alert(
       'Delete Account?',
@@ -189,10 +205,7 @@ export default function SettingsScreen() {
                       await onboarding.reset();
                       await signOut();
                     } catch {
-                      Alert.alert(
-                        'Error',
-                        'Failed to delete account. Please try again.'
-                      );
+                      Alert.alert('Error', 'Failed to delete account. Please try again.');
                     }
                   },
                 },
@@ -206,7 +219,7 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-stone-50 dark:bg-slate-950">
-      {/* Header */}
+      {/* --- Header --- */}
       <View className="px-5 pt-4 pb-2 flex-row items-center">
         <TouchableOpacity
           onPress={() => router.back()}
@@ -220,7 +233,7 @@ export default function SettingsScreen() {
       </View>
 
       <ScrollView className="flex-1 px-5" showsVerticalScrollIndicator={false}>
-        {/* Goal */}
+        {/* --- Goal --- */}
         <Card className="mb-4">
           <Text className="text-base font-semibold text-slate-900 dark:text-white mb-3">
             Goal
@@ -237,108 +250,23 @@ export default function SettingsScreen() {
           ))}
         </Card>
 
-        {/* Budget & Skill */}
+        {/* --- Budget, Skill Level, Dietary Restrictions (shared form) --- */}
         <Card className="mb-4">
-          <Text className="text-base font-semibold text-slate-900 dark:text-white mb-3">
-            Weekly grocery budget
-          </Text>
-          <View className="flex-row flex-wrap gap-2 mb-6">
-            {BUDGET_OPTIONS.map((amount) => (
-              <TouchableOpacity
-                key={amount}
-                onPress={() => setWeeklyBudget(amount)}
-                className={`px-5 py-3 rounded-xl border-2 ${
-                  weeklyBudget === amount
-                    ? 'border-primary-500 bg-primary-50 dark:border-primary-400 dark:bg-primary-400/10'
-                    : 'border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900'
-                }`}
-              >
-                <Text
-                  className={`text-base font-semibold ${
-                    weeklyBudget === amount
-                      ? 'text-primary-600 dark:text-primary-400'
-                      : 'text-slate-700 dark:text-slate-300'
-                  }`}
-                >
-                  ${amount}/wk
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          <Text className="text-base font-semibold text-slate-900 dark:text-white mb-3">
-            Cooking skill level
-          </Text>
-          <View>
-            {SKILL_LEVELS.map((level) => (
-              <TouchableOpacity
-                key={level.key}
-                onPress={() => setSkillLevel(level.key)}
-                className={`flex-row items-center p-4 rounded-xl border-2 mb-2 ${
-                  skillLevel === level.key
-                    ? 'border-primary-500 bg-primary-50 dark:border-primary-400 dark:bg-primary-400/10'
-                    : 'border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900'
-                }`}
-              >
-                <View className="flex-1">
-                  <Text
-                    className={`text-base font-semibold ${
-                      skillLevel === level.key
-                        ? 'text-primary-600 dark:text-primary-400'
-                        : 'text-slate-900 dark:text-white'
-                    }`}
-                  >
-                    {level.label}
-                  </Text>
-                  <Text className="text-sm text-slate-500 dark:text-slate-400">
-                    {level.description}
-                  </Text>
-                </View>
-                {skillLevel === level.key && (
-                  <Ionicons name="checkmark-circle" size={22} color="#10B981" />
-                )}
-              </TouchableOpacity>
-            ))}
-          </View>
+          <PreferencesForm
+            weeklyBudget={weeklyBudget}
+            onBudgetChange={setWeeklyBudget}
+            skillLevel={skillLevel}
+            onSkillLevelChange={setSkillLevel}
+            dietaryRestrictions={dietaryRestrictions}
+            onDietaryRestrictionToggle={(key) =>
+              setDietaryRestrictions((prev) =>
+                prev.includes(key) ? prev.filter((r) => r !== key) : [...prev, key]
+              )
+            }
+          />
         </Card>
 
-        {/* Dietary Restrictions */}
-        <Card className="mb-4">
-          <Text className="text-base font-semibold text-slate-900 dark:text-white mb-1">
-            Dietary restrictions
-          </Text>
-          <Text className="text-sm text-slate-500 dark:text-slate-400 mb-3">
-            Select all that apply (optional)
-          </Text>
-          <View className="flex-row flex-wrap gap-2">
-            {DIETARY_OPTIONS.map((option) => {
-              const selected = dietaryRestrictions.includes(option.key);
-              return (
-                <TouchableOpacity
-                  key={option.key}
-                  onPress={() => toggleRestriction(option.key)}
-                  className={`px-4 py-2.5 rounded-full border-2 ${
-                    selected
-                      ? 'border-primary-500 bg-primary-50 dark:border-primary-400 dark:bg-primary-400/10'
-                      : 'border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900'
-                  }`}
-                >
-                  <Text
-                    className={`text-sm font-medium ${
-                      selected
-                        ? 'text-primary-600 dark:text-primary-400'
-                        : 'text-slate-700 dark:text-slate-300'
-                    }`}
-                  >
-                    {option.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </Card>
-
-        {/* Appearance */}
+        {/* --- Appearance --- */}
         <Card className="mb-4">
           <Text className="text-base font-semibold text-slate-900 dark:text-white mb-3">
             Appearance
@@ -380,7 +308,7 @@ export default function SettingsScreen() {
           </View>
         </Card>
 
-        {/* Save */}
+        {/* --- Save --- */}
         <View className="mb-4">
           <Button
             title="Save Changes"
@@ -390,7 +318,7 @@ export default function SettingsScreen() {
           />
         </View>
 
-        {/* About */}
+        {/* --- About --- */}
         <Card className="mb-4">
           <Text className="text-base font-semibold text-slate-900 dark:text-white mb-3">
             About
@@ -402,7 +330,7 @@ export default function SettingsScreen() {
           />
         </Card>
 
-        {/* Danger Zone */}
+        {/* --- Danger Zone (authenticated users only) --- */}
         {isAuthenticated && (
           <Card className="mb-4 border-rose-200 dark:border-rose-900">
             <Text className="text-base font-semibold text-rose-600 dark:text-rose-400 mb-3">
@@ -439,13 +367,24 @@ export default function SettingsScreen() {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Private components
+// ---------------------------------------------------------------------------
+
+/**
+ * SettingsRow renders a single label–value row with a leading icon.
+ * Used in the About card.
+ */
 function SettingsRow({
   icon,
   label,
   value,
 }: {
+  /** Ionicons glyph name for the leading icon. */
   icon: keyof typeof Ionicons.glyphMap;
+  /** Row label displayed on the left. */
   label: string;
+  /** Row value displayed on the right. */
   value: string;
 }) {
   return (

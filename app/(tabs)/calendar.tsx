@@ -1,3 +1,24 @@
+/**
+ * @file app/(tabs)/calendar.tsx
+ * Main calendar tab — shows the user's meal plan on a monthly calendar and
+ * in a flat list view, with navigation to individual day detail screens.
+ *
+ * Route: `/(tabs)/calendar`
+ * Two view modes toggled by the segmented control:
+ *   - **Month**: `react-native-calendars` Calendar with custom `dayComponent`
+ *     showing coloured dots per slot. Tapping a date selects it and shows a
+ *     meal preview below the calendar.
+ *   - **List**: `SectionList` of all planned meals for the month, grouped by date.
+ *
+ * Date handling:
+ *   Dates are formatted as `YYYY-MM-DD` strings. When constructing `Date` objects
+ *   for display, `'T12:00:00'` is appended to avoid timezone-induced off-by-one-day
+ *   errors (e.g. `new Date('2025-03-01')` in UTC-5 would display as Feb 28).
+ *
+ * The `markedDates` object is memoised and sorted by `SLOT_ORDER` so dots always
+ * appear in the canonical breakfast → lunch → dinner → snack order.
+ */
+
 import { useState, useMemo } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, SectionList, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';

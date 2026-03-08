@@ -1,3 +1,20 @@
+/**
+ * @file app/meal/add.tsx
+ * Modal screen for adding an existing saved meal to a specific slot on a calendar day.
+ *
+ * Route: `/meal/add?date=YYYY-MM-DD&slot=<MealSlotType>`
+ * Presentation: modal (slide_from_bottom) — registered in `app/_layout.tsx`.
+ *
+ * Query params:
+ *   - `date` — the target day in YYYY-MM-DD format
+ *   - `slot` — the meal slot to fill ('breakfast' | 'lunch' | 'dinner' | 'snack')
+ *
+ * The screen shows the user's saved meals with a live search bar. Tapping a meal
+ * calls `useAddMealToPlan()`, which upserts into `meal_plan_items` keyed on
+ * (user_id, date, slot) — replacing any previously assigned meal for that slot.
+ * On success it calls `router.back()` to return to the day detail view.
+ */
+
 import { useState } from 'react';
 import {
   View,
@@ -16,31 +33,56 @@ import { Input } from '../../components/ui/Input';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { MealSlotType } from '../../lib/types';
 
+/**
+ * Type guard that narrows an unknown string to a valid MealSlotType.
+ * Prevents using an invalid slot string in the mutation.
+ *
+ * @param value - The raw string from query params.
+ * @returns True if value is a valid MealSlotType.
+ */
+function isMealSlotType(value: string): value is MealSlotType {
+  return ['breakfast', 'lunch', 'dinner', 'snack'].includes(value);
+}
+
+/**
+ * AddMealScreen lets users search their saved meals and assign one to a
+ * specific slot on a given date. Opened as a modal from `app/day/[date].tsx`
+ * when an empty meal slot is tapped.
+ */
 export default function AddMealScreen() {
   const { date, slot } = useLocalSearchParams<{
     date: string;
-    slot: MealSlotType;
+    slot: string;
   }>();
   const router = useRouter();
   const [search, setSearch] = useState('');
   const { data: meals, isLoading } = useMeals(search);
   const addMeal = useAddMealToPlan();
 
+  // Validate slot param before using it in a mutation to prevent silent failures
+  const validSlot = slot && isMealSlotType(slot) ? slot : null;
+
+  const slotLabel = validSlot
+    ? validSlot.charAt(0).toUpperCase() + validSlot.slice(1)
+    : 'Meal';
+
+  /** Validates params, inserts the meal plan item, and navigates back on success. */
   const handleAddMeal = async (mealId: string) => {
+    if (!validSlot) {
+      Alert.alert('Error', 'Invalid meal slot. Please try again.');
+      return;
+    }
     try {
-      await addMeal.mutateAsync({ meal_id: mealId, date, slot });
+      await addMeal.mutateAsync({ meal_id: mealId, date, slot: validSlot });
       router.back();
     } catch {
       Alert.alert('Error', 'Failed to add meal to plan');
     }
   };
 
-  const slotLabel = slot
-    ? slot.charAt(0).toUpperCase() + slot.slice(1)
-    : 'Meal';
-
   return (
     <SafeAreaView className="flex-1 bg-stone-50 dark:bg-slate-950">
+      {/* --- Header --- */}
       <View className="px-5 pt-4 pb-2 flex-row items-center">
         <TouchableOpacity onPress={() => router.back()} className="mr-3">
           <Ionicons name="arrow-back" size={24} color="#64748B" />
@@ -60,6 +102,7 @@ export default function AddMealScreen() {
         </View>
       </View>
 
+      {/* --- Search --- */}
       <View className="px-5 pt-3 pb-2">
         <Input
           placeholder="Search your meals..."
@@ -69,6 +112,7 @@ export default function AddMealScreen() {
         />
       </View>
 
+      {/* --- Meal list --- */}
       <ScrollView
         className="flex-1 px-5 pt-2"
         showsVerticalScrollIndicator={false}
@@ -88,6 +132,7 @@ export default function AddMealScreen() {
             ))}
           </View>
         ) : (
+          // --- Empty / no-results state ---
           <View className="items-center py-12">
             <Ionicons
               name="search-outline"

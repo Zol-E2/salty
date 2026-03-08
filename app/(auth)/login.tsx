@@ -1,3 +1,17 @@
+/**
+ * @file app/(auth)/login.tsx
+ * Login screen — collects the user's email and sends a magic-link OTP.
+ *
+ * Route: `/(auth)/login`
+ * Auth flow:
+ *   1. User enters their email address.
+ *   2. `emailSchema` from `lib/validation.ts` validates the format client-side.
+ *   3. `supabase.auth.signInWithOtp()` sends an 8-digit code to the email.
+ *   4. On success, navigates to `/(auth)/verify` passing the email as a param.
+ *
+ * No password is ever collected — Salty uses passwordless OTP-only auth.
+ */
+
 import { useState } from 'react';
 import {
   View,

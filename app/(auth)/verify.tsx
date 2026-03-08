@@ -1,3 +1,20 @@
+/**
+ * @file app/(auth)/verify.tsx
+ * OTP verification screen — accepts the 8-digit code sent to the user's email.
+ *
+ * Route: `/(auth)/verify?email=<address>`
+ * Key behaviours:
+ *   - Codes expire after 5 minutes (`CODE_EXPIRY_SECONDS = 300`); a countdown
+ *     timer disables the Verify button and shows "Code expired" when it hits 0.
+ *   - The Resend button has a 60-second cooldown (`RESEND_COOLDOWN_SECONDS`)
+ *     to prevent abuse; tapping it resets both the cooldown and the expiry timer.
+ *   - On successful verification, onboarding data is synced to the Supabase
+ *     `profiles` table (if `onboardingComplete` is true) before navigating to
+ *     the calendar tab.
+ *   - The session is established via `onAuthStateChange` in `app/_layout.tsx`;
+ *     this screen does not manually set auth state.
+ */
+
 import { useState, useEffect } from 'react';
 import {
   View,

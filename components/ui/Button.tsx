@@ -1,19 +1,64 @@
+/**
+ * @file components/ui/Button.tsx
+ * Reusable animated button component with 5 visual variants and 3 sizes.
+ *
+ * The press animation uses `Animated.spring` with a shared `SPRING_CONFIG`
+ * so all button instances feel physically consistent. The spring parameters
+ * are tuned so the button snaps back crisply without over-bouncing:
+ *   - `damping: 15` — enough friction to stop oscillation quickly
+ *   - `stiffness: 150` — stiff enough for a snappy feel, not so stiff it's jarring
+ */
+
 import { useRef } from 'react';
 import { Pressable, Text, ActivityIndicator, View, Animated } from 'react-native';
 
+/** Props accepted by the Button component. */
 interface ButtonProps {
+  /** Text label displayed inside the button. */
   title: string;
+  /** Callback fired when the button is pressed. */
   onPress: () => void;
+  /**
+   * Visual style variant:
+   *   - `primary` — solid emerald background, white text (default)
+   *   - `secondary` — muted slate background, dark text
+   *   - `outline` — transparent background with an emerald border
+   *   - `ghost` — no background or border, emerald text
+   *   - `danger` — solid red background, white text
+   */
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
+  /**
+   * Size preset:
+   *   - `sm` — smaller padding and text
+   *   - `md` — standard size (default)
+   *   - `lg` — larger padding and text for primary CTAs
+   */
   size?: 'sm' | 'md' | 'lg';
+  /** When true, the button is rendered at 50% opacity and non-interactive. */
   disabled?: boolean;
+  /** When true, replaces button content with an `ActivityIndicator`. */
   loading?: boolean;
+  /** Optional icon rendered to the left of the label. */
   icon?: React.ReactNode;
+  /** Additional NativeWind class names applied to the animated container. */
   className?: string;
 }
 
+/**
+ * Spring configuration shared across all button press animations.
+ *   - `damping: 15` — sufficient friction to suppress oscillation
+ *   - `stiffness: 150` — snappy response without feeling harsh
+ *   - `useNativeDriver: true` — runs on the UI thread for 60 fps performance
+ */
 const SPRING_CONFIG = { damping: 15, stiffness: 150, useNativeDriver: true };
 
+/**
+ * Button renders a pressable element with a spring scale animation on press.
+ * The scale shrinks to 0.96× on press-in and returns to 1× on press-out,
+ * giving tactile feedback without layout reflow.
+ *
+ * @param props - See `ButtonProps`.
+ */
 export function Button({
   title,
   onPress,

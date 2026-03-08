@@ -1,24 +1,84 @@
+/**
+ * @file components/ui/SaltShakerLoader.tsx
+ * Animated loading screen featuring a shaking salt shaker emoji with a
+ * particle system that simulates salt falling out.
+ *
+ * Particle system approach:
+ *   Rather than pre-creating a fixed pool of particles, this component uses a
+ *   React state array (`particles`) as a live queue. A "burst" of
+ *   `PARTICLE_BURST_COUNT` particles is spawned at the start of each shake
+ *   cycle, staggered by `PARTICLE_STAGGER` ms each. Each particle runs its
+ *   own animation independently via `SaltParticle` (a memoised sub-component)
+ *   and calls `onComplete` when it finishes, removing itself from the array.
+ *   This keeps the particle count bounded and avoids memory leaks.
+ *
+ * Animation lifecycle:
+ *   1. `shakeSequence` — 3 dampening flicks (12°, 10°, 8°) + settle + 1s rest.
+ *   2. `scaleLoop` — continuous breathing scale (1.0 ↔ 1.04) on the shaker container.
+ *   3. Per-particle gravity fall + horizontal drift + fade-out.
+ *
+ * The `mountedRef` guard prevents state updates after unmount, which would
+ * otherwise trigger React's "Can't perform a state update on an unmounted
+ * component" warning.
+ */
+
 import { useEffect, useRef, useState, useCallback, memo } from 'react';
 import { View, Text, Animated, Easing } from 'react-native';
 import { TypewriterTips } from './TypewriterTips';
 import { GenerationPhases } from './GenerationPhases';
 
+/** Props accepted by SaltShakerLoader. */
 interface SaltShakerLoaderProps {
+  /**
+   * Primary loading message shown below the shaker.
+   * Pass an empty string to hide the message entirely.
+   */
   message?: string;
+  /**
+   * Secondary message shown below `message`.
+   * Pass an empty string to hide. Ignored when `showTips` or `timeframe` is set.
+   */
   submessage?: string;
+  /** When true, renders `TypewriterTips` below the shaker instead of `submessage`. */
   showTips?: boolean;
+  /**
+   * When set, renders `GenerationPhases` instead of a plain message.
+   * Used during multi-week meal plan generation to show phase progress.
+   */
   timeframe?: 'day' | 'week' | 'month';
 }
 
+/** Minimal descriptor for a live particle in the state array. */
 interface ParticleDescriptor {
+  /** Unique sequential ID used as the React list key. */
   id: number;
 }
 
+/** Starting rotation angle of the shaker (degrees). Tilted as if pouring. */
 const BASE_ANGLE = -130;
+/** Number of salt particles spawned per shake cycle. */
 const PARTICLE_BURST_COUNT = 10;
+/** Milliseconds between consecutive particle spawns within a burst. */
 const PARTICLE_STAGGER = 55;
+/** Colour palette for individual salt particles — off-whites to simulate real salt. */
 const SALT_COLORS = ['#FFFFFF', '#F5F5F0', '#E8E5E0', '#D4D4CC'];
 
+// ---------------------------------------------------------------------------
+// SaltParticle — individual particle (memoised to prevent unnecessary re-renders)
+// ---------------------------------------------------------------------------
+
+/**
+ * SaltParticle renders a single animated salt grain. Each instance:
+ *   - Falls downward under simulated gravity (accelerating easing).
+ *   - Drifts left with sinusoidal easing (following the pour direction).
+ *   - Fades in quickly then gradually fades out.
+ *
+ * All physics values (size, distance, drift, duration, colour) are randomised
+ * once on mount via `useRef` to prevent re-randomisation on re-render.
+ *
+ * The `onComplete` callback fires when the animation finishes, allowing the
+ * parent to remove the particle from the state array.
+ */
 const SaltParticle = memo(function SaltParticle({
   id,
   onComplete,
@@ -30,6 +90,7 @@ const SaltParticle = memo(function SaltParticle({
   const translateX = useRef(new Animated.Value(0)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
+  // Randomise physics on mount and freeze values to avoid re-randomisation
   const size = useRef(3 + Math.random() * 2).current;
   const fallDistance = useRef(40 + Math.random() * 25).current;
   const driftX = useRef(-5 + Math.random() * -15).current;
@@ -88,6 +149,16 @@ const SaltParticle = memo(function SaltParticle({
   );
 });
 
+// ---------------------------------------------------------------------------
+// SaltShakerLoader — main export
+// ---------------------------------------------------------------------------
+
+/**
+ * SaltShakerLoader displays an animated salt shaker with falling particles.
+ * Used on the initial app load (`FlowGuard`) and during AI meal generation.
+ *
+ * @param props - See `SaltShakerLoaderProps`.
+ */
 export function SaltShakerLoader({
   message = 'Generating your meals...',
   submessage = 'Our AI is crafting the perfect plan\nbased on your preferences',
@@ -101,12 +172,17 @@ export function SaltShakerLoader({
   const mountedRef = useRef(true);
   const burstTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
+  /** Removes a completed particle from the state array. */
   const removeParticle = useCallback((id: number) => {
     if (mountedRef.current) {
       setParticles((prev) => prev.filter((p) => p.id !== id));
     }
   }, []);
 
+  /**
+   * Spawns `PARTICLE_BURST_COUNT` particles staggered by `PARTICLE_STAGGER` ms.
+   * Each particle gets a unique sequential ID from `nextIdRef`.
+   */
   const spawnParticleBurst = useCallback(() => {
     for (let i = 0; i < PARTICLE_BURST_COUNT; i++) {
       const timer = setTimeout(() => {
@@ -122,7 +198,7 @@ export function SaltShakerLoader({
   useEffect(() => {
     mountedRef.current = true;
 
-    // Build the shake sequence (3 dampening flicks + settle + rest)
+    // Build the shake sequence (3 dampening flicks + settle overshoot + rest pause)
     const shakeSequence = Animated.sequence([
       // Flick 1 (12° amplitude)
       Animated.timing(rotation, {
@@ -137,7 +213,7 @@ export function SaltShakerLoader({
         easing: Easing.inOut(Easing.sin),
         useNativeDriver: true,
       }),
-      // Flick 2 (10° amplitude)
+      // Flick 2 (10° amplitude — dampening)
       Animated.timing(rotation, {
         toValue: BASE_ANGLE + 10,
         duration: 80,
@@ -150,7 +226,7 @@ export function SaltShakerLoader({
         easing: Easing.inOut(Easing.sin),
         useNativeDriver: true,
       }),
-      // Flick 3 (8° amplitude, dampening)
+      // Flick 3 (8° amplitude — dampening)
       Animated.timing(rotation, {
         toValue: BASE_ANGLE + 8,
         duration: 80,
@@ -163,7 +239,7 @@ export function SaltShakerLoader({
         easing: Easing.inOut(Easing.sin),
         useNativeDriver: true,
       }),
-      // Settle overshoot
+      // Settle overshoot — slight bounce back before coming to rest
       Animated.timing(rotation, {
         toValue: BASE_ANGLE - 3,
         duration: 60,
@@ -176,11 +252,11 @@ export function SaltShakerLoader({
         easing: Easing.out(Easing.quad),
         useNativeDriver: true,
       }),
-      // Rest pause
+      // Rest pause before the next cycle
       Animated.delay(1000),
     ]);
 
-    // Recursive cycle: animation + particle burst start together
+    // Recursive cycle: spawn particles and run shake animation together
     const runCycle = () => {
       if (!mountedRef.current) return;
       spawnParticleBurst();
@@ -193,7 +269,7 @@ export function SaltShakerLoader({
     };
     runCycle();
 
-    // Breathing scale effect
+    // Continuous breathing scale effect (subtle 1.0 ↔ 1.04 pulse)
     const scaleLoop = Animated.loop(
       Animated.sequence([
         Animated.timing(containerScale, {
@@ -244,6 +320,7 @@ export function SaltShakerLoader({
             <Text style={{ fontSize: 48 }}>🧂</Text>
           </Animated.View>
         </Animated.View>
+        {/* Particle emission point — positioned at the shaker's spout */}
         <View
           style={{
             position: 'absolute',

@@ -1,3 +1,19 @@
+/**
+ * @file app/(tabs)/profile.tsx
+ * Profile tab — displays the user's current preferences and upgrade prompt.
+ *
+ * Route: `/(tabs)/profile`
+ * Data fallback chain:
+ *   Profile data is read from two sources in priority order:
+ *   1. Supabase `profiles` table (when authenticated) — always up to date.
+ *   2. `onboardingStore` (local SecureStore) — used when offline or during
+ *      the initial render before the Supabase query resolves.
+ *   This prevents the screen from showing empty values while the query loads.
+ *
+ * The screen does not allow editing — users tap the settings gear icon to
+ * navigate to `app/settings.tsx` for modifications.
+ */
+
 import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
