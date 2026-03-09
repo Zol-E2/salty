@@ -10,6 +10,22 @@
     "today": "Ma",
     "version": "Verzió"
   },
+  "auth": {
+    "loginSubtitle": "Étkezéstervezés egyszerűen diákoknak",
+    "emailLabel": "E-mail cím",
+    "emailPlaceholder": "te@egyetem.hu",
+    "emailHint": "8 jegyű kódot küldünk. Nincs szükség jelszóra.",
+    "sendCode": "Kód küldése",
+    "checkEmail": "Ellenőrizd az e-mailjedet",
+    "codeSentTo": "8 jegyű kódot küldtünk a következő címre:",
+    "codeExpires": "A kód {{time}} múlva lejár",
+    "codeExpired": "A kód lejárt",
+    "verificationCode": "Ellenőrző kód",
+    "verify": "Ellenőrzés",
+    "resendCode": "Kód újraküldése",
+    "resendCodeTimer": "Újraküldés {{seconds}} mp múlva",
+    "useDifferentEmail": "Más e-mail cím használata"
+  },
   "onboarding": {
     "welcome": {
       "title": "Üdvözöl a Salty",
@@ -55,7 +71,21 @@
       "title": "Oldja fel a teljes élményt",
       "subtitle": "Válassz egy büdzsédhez illő csomagot",
       "mostPopular": "Legtöbbet választott",
-      "forever": "örökre"
+      "forever": "örökre",
+      "planFree": "Ingyenes",
+      "planPro": "Pro",
+      "planProPlus": "Pro+",
+      "featureFreeAi": "3 AI étrendterv / hét",
+      "featureFreeRecipes": "Alapreceptek",
+      "featureFreeCalendar": "Naptár nézet",
+      "featureProUnlimited": "Korlátlan AI étrendtervek",
+      "featureProMacros": "Részletes makrók és táplálkozás",
+      "featureProGrocery": "Bevásárlólista exportálás",
+      "featureProSupport": "Elsőbbségi támogatás",
+      "featureProPlusEverything": "Minden, ami Pro-ban van",
+      "featureProPlusBatch": "Kötegelt ételkészítés tervezése",
+      "featureProPlusShare": "Tervek megosztása szobatársakkal",
+      "featureProPlusRecipe": "Egyéni recept importálás"
     }
   },
   "tabs": {
@@ -72,6 +102,14 @@
     "addMeals": "Étkezések hozzáadása",
     "unknownMeal": "Ismeretlen étkezés"
   },
+  "day": {
+    "removeMeal": "Étkezés eltávolítása",
+    "removeMealConfirm": "Eltávolítja ezt az étkezést a tervéből?",
+    "daySummary": "Napi összefoglaló",
+    "calories": "Kalória",
+    "cost": "Költség",
+    "time": "Idő"
+  },
   "generate": {
     "title": "AI Generálás",
     "titlePreview": "Az étrendterved",
@@ -81,7 +119,30 @@
     "generatingMeals": "Az ételeid generálása...",
     "errorTitle": "Generálás sikertelen",
     "errorSlowDown": "Lassíts egy kicsit",
-    "errorSave": "Nem sikerült menteni az étrendtervet."
+    "errorSave": "Nem sikerült menteni az étrendtervet.",
+    "planDuration": "Terv időtartama",
+    "timeframeDay": "Nap",
+    "timeframeWeek": "Hét",
+    "timeframeMonth": "Hónap",
+    "budgetLabel": "Büdzsé ({{currency}}/{{period}})",
+    "budgetPeriodDay": "nap",
+    "budgetPeriodWeek": "hét",
+    "budgetPeriodMonth": "hónap",
+    "maxCookTime": "Főzési idő max. ételenként (perc)",
+    "servings": "Adagok ételeként",
+    "dailyCalories": "Napi kalóriacél (nem kötelező)",
+    "availableIngredients": "Elérhető hozzávalók (nem kötelező, vesszővel elválasztva)",
+    "ingredientsPlaceholder": "rizs, csirke, brokkoli, tojás...",
+    "dietaryRestrictions": "Étkezési korlátozások",
+    "generateButton": "Étrendterv generálása",
+    "saveFailed": "Mentés sikertelen",
+    "generatedMeals": "{{count}} étel generálva",
+    "estCost": "Becsült költség:",
+    "avgCalMeal": "Átlag: {{calories}} kal/étel",
+    "dayLabel": "{{number}}. nap",
+    "saveToCalendar": "Mentés a naptárba",
+    "tryAgain": "Próbáld újra",
+    "discard": "Elvetés"
   },
   "profile": {
     "title": "Profil",
@@ -161,6 +222,19 @@
     "breakfast": "Reggeli",
     "lunch": "Ebéd",
     "dinner": "Vacsora",
-    "snack": "Snack"
+    "snack": "Snack",
+    "loading": "Étkezés betöltése...",
+    "aiGenerated": "AI által generált",
+    "nutrition": "Táplálkozás",
+    "ingredients": "Összetevők",
+    "instructions": "Elkészítés",
+    "prep": "Előkészítés",
+    "cook": "Főzés",
+    "level": "Szint",
+    "searchPlaceholder": "Ételek keresése...",
+    "noMealsSearch": "Nincs találat. Próbálj más keresést.",
+    "noMealsYet": "Még nincs étel. Generálj az AI-val!",
+    "generateWithAi": "Ételek generálása AI-val",
+    "addSlotTitle": "{{slot}} hozzáadása"
   }
 }

@@ -10,6 +10,22 @@
     "today": "Heute",
     "version": "Version"
   },
+  "auth": {
+    "loginSubtitle": "Mahlzeitenplanung leicht gemacht für Studenten",
+    "emailLabel": "E-Mail-Adresse",
+    "emailPlaceholder": "du@universitaet.de",
+    "emailHint": "Wir senden dir einen 8-stelligen Code. Kein Passwort nötig.",
+    "sendCode": "Code senden",
+    "checkEmail": "Überprüfe deine E-Mail",
+    "codeSentTo": "Wir haben einen 8-stelligen Code gesendet an",
+    "codeExpires": "Code läuft ab in {{time}}",
+    "codeExpired": "Code abgelaufen",
+    "verificationCode": "Bestätigungscode",
+    "verify": "Bestätigen",
+    "resendCode": "Code erneut senden",
+    "resendCodeTimer": "Erneut senden in {{seconds}}s",
+    "useDifferentEmail": "Andere E-Mail-Adresse verwenden"
+  },
   "onboarding": {
     "welcome": {
       "title": "Willkommen bei Salty",
@@ -55,7 +71,21 @@
       "title": "Volle Erfahrung freischalten",
       "subtitle": "Wähle einen Plan passend zu deinem Budget",
       "mostPopular": "Beliebteste Wahl",
-      "forever": "für immer"
+      "forever": "für immer",
+      "planFree": "Kostenlos",
+      "planPro": "Pro",
+      "planProPlus": "Pro+",
+      "featureFreeAi": "3 KI-Mahlzeitenpläne / Woche",
+      "featureFreeRecipes": "Grundrezepte",
+      "featureFreeCalendar": "Kalenderansicht",
+      "featureProUnlimited": "Unbegrenzte KI-Mahlzeitenpläne",
+      "featureProMacros": "Detaillierte Makros & Ernährung",
+      "featureProGrocery": "Einkaufsliste exportieren",
+      "featureProSupport": "Prioritätssupport",
+      "featureProPlusEverything": "Alles in Pro",
+      "featureProPlusBatch": "Mahlzeiten-Batch-Planung",
+      "featureProPlusShare": "Pläne mit Mitbewohnern teilen",
+      "featureProPlusRecipe": "Benutzerdefinierter Rezeptimport"
     }
   },
   "tabs": {
@@ -72,6 +102,14 @@
     "addMeals": "Mahlzeiten hinzufügen",
     "unknownMeal": "Unbekannte Mahlzeit"
   },
+  "day": {
+    "removeMeal": "Mahlzeit entfernen",
+    "removeMealConfirm": "Diese Mahlzeit aus deinem Plan entfernen?",
+    "daySummary": "Tageszusammenfassung",
+    "calories": "Kalorien",
+    "cost": "Kosten",
+    "time": "Zeit"
+  },
   "generate": {
     "title": "KI Generieren",
     "titlePreview": "Dein Mahlzeitenplan",
@@ -81,7 +119,30 @@
     "generatingMeals": "Deine Mahlzeiten werden generiert...",
     "errorTitle": "Generierung fehlgeschlagen",
     "errorSlowDown": "Langsamer",
-    "errorSave": "Mahlzeitenplan konnte nicht gespeichert werden."
+    "errorSave": "Mahlzeitenplan konnte nicht gespeichert werden.",
+    "planDuration": "Plandauer",
+    "timeframeDay": "Tag",
+    "timeframeWeek": "Woche",
+    "timeframeMonth": "Monat",
+    "budgetLabel": "Budget ({{currency}}/{{period}})",
+    "budgetPeriodDay": "Tag",
+    "budgetPeriodWeek": "Woche",
+    "budgetPeriodMonth": "Monat",
+    "maxCookTime": "Maximale Kochzeit pro Mahlzeit (Minuten)",
+    "servings": "Portionen pro Mahlzeit",
+    "dailyCalories": "Tägliches Kalorienziel (optional)",
+    "availableIngredients": "Verfügbare Zutaten (optional, kommagetrennt)",
+    "ingredientsPlaceholder": "Reis, Hähnchen, Brokkoli, Eier...",
+    "dietaryRestrictions": "Ernährungseinschränkungen",
+    "generateButton": "Mahlzeitenplan generieren",
+    "saveFailed": "Speichern fehlgeschlagen",
+    "generatedMeals": "{{count}} Mahlzeiten generiert",
+    "estCost": "Geschätzte Kosten:",
+    "avgCalMeal": "Durchschn.: {{calories}} kcal/Mahlzeit",
+    "dayLabel": "Tag {{number}}",
+    "saveToCalendar": "Im Kalender speichern",
+    "tryAgain": "Erneut versuchen",
+    "discard": "Verwerfen"
   },
   "profile": {
     "title": "Profil",
@@ -161,6 +222,19 @@
     "breakfast": "Frühstück",
     "lunch": "Mittagessen",
     "dinner": "Abendessen",
-    "snack": "Snack"
+    "snack": "Snack",
+    "loading": "Mahlzeit wird geladen...",
+    "aiGenerated": "KI-generiert",
+    "nutrition": "Nährwerte",
+    "ingredients": "Zutaten",
+    "instructions": "Anleitung",
+    "prep": "Vorbereitung",
+    "cook": "Kochen",
+    "level": "Niveau",
+    "searchPlaceholder": "Deine Mahlzeiten suchen...",
+    "noMealsSearch": "Keine Mahlzeiten gefunden. Andere Suche versuchen.",
+    "noMealsYet": "Noch keine Mahlzeiten. Mit KI generieren!",
+    "generateWithAi": "Mahlzeiten mit KI generieren",
+    "addSlotTitle": "{{slot}} hinzufügen"
   }
 }

@@ -1,18 +1,45 @@
+/**
+ * @file components/generate/GeneratePreview.tsx
+ * Preview component showing AI-generated meals grouped by day before saving.
+ *
+ * Displays a summary banner (total cost, avg calories) and a per-day list of
+ * generated meals. Uses `useTranslation()` for all labels and `useCurrency()`
+ * for cost display so amounts respect the user's currency selection.
+ */
+
 import { View, Text, ScrollView } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { GeneratedMeal } from '../../lib/types';
 import { SLOT_COLORS } from '../../lib/constants';
 import { Button } from '../ui/Button';
 import { AnimatedCard } from '../ui/AnimatedCard';
+import { useCurrency } from '../../hooks/useCurrency';
 
+/** Props for {@link GeneratePreview}. */
 interface GeneratePreviewProps {
+  /** The AI-generated meals to preview. */
   meals: GeneratedMeal[];
+  /** Called when the user confirms and saves all meals to the calendar. */
   onSave: () => void;
+  /** Called when the user discards the generated meals. */
   onDiscard: () => void;
+  /** Called to re-run generation with the same parameters. */
   onTryAgain: () => void;
+  /** When true, the save button shows a loading spinner. */
   saving: boolean;
 }
 
+/**
+ * Renders a scrollable preview of generated meals grouped by day.
+ *
+ * @param props.meals - Generated meals to display.
+ * @param props.onSave - Save handler; shows spinner while saving.
+ * @param props.onDiscard - Discard all generated meals.
+ * @param props.onTryAgain - Re-run generation with the same request.
+ * @param props.saving - Whether a save is currently in progress.
+ * @returns A scrollable preview with action buttons.
+ */
 export function GeneratePreview({
   meals,
   onSave,
@@ -20,6 +47,9 @@ export function GeneratePreview({
   onTryAgain,
   saving,
 }: GeneratePreviewProps) {
+  const { t } = useTranslation();
+  const { format } = useCurrency();
+
   const groupedByDay = meals.reduce(
     (acc, meal) => {
       const day = meal.day;
@@ -43,15 +73,15 @@ export function GeneratePreview({
         <View className="flex-row items-center mb-2">
           <Ionicons name="sparkles" size={18} color="#10B981" />
           <Text className="text-base font-semibold text-primary-700 dark:text-primary-300 ml-2">
-            Generated {meals.length} meals
+            {t('generate.generatedMeals', { count: meals.length })}
           </Text>
         </View>
         <View className="flex-row justify-between">
           <Text className="text-sm text-primary-600 dark:text-primary-400">
-            Est. cost: ${totalCost.toFixed(2)}
+            {t('generate.estCost')} {format(totalCost)}
           </Text>
           <Text className="text-sm text-primary-600 dark:text-primary-400">
-            Avg: {avgCalories} cal/meal
+            {t('generate.avgCalMeal', { calories: avgCalories })}
           </Text>
         </View>
       </View>
@@ -65,7 +95,7 @@ export function GeneratePreview({
           .map(([day, dayMeals]) => (
             <View key={day} className="mb-5">
               <Text className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-                Day {day}
+                {t('generate.dayLabel', { number: day })}
               </Text>
               {dayMeals.map((meal, idx) => {
                 const cardIndex = globalIndex++;
@@ -95,7 +125,7 @@ export function GeneratePreview({
                           {meal.name}
                         </Text>
                         <Text className="text-xs text-slate-500 dark:text-slate-400">
-                          {meal.calories} cal · ${meal.estimated_cost.toFixed(2)} ·{' '}
+                          {meal.calories} cal · {format(meal.estimated_cost)} ·{' '}
                           {meal.cook_time_min}m
                         </Text>
                       </View>
@@ -109,21 +139,21 @@ export function GeneratePreview({
 
       <View className="gap-3 mb-8">
         <Button
-          title="Save to Calendar"
+          title={t('generate.saveToCalendar')}
           onPress={onSave}
           loading={saving}
           size="lg"
           icon={<Ionicons name="checkmark" size={20} color="white" />}
         />
         <Button
-          title="Try Again"
+          title={t('generate.tryAgain')}
           onPress={onTryAgain}
           variant="outline"
           size="md"
           icon={<Ionicons name="refresh" size={18} color="#10B981" />}
         />
         <Button
-          title="Discard"
+          title={t('generate.discard')}
           onPress={onDiscard}
           variant="danger"
           size="md"

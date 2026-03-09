@@ -1,5 +1,18 @@
+/**
+ * @file components/generate/GenerateForm.tsx
+ * Form component for collecting meal generation parameters.
+ *
+ * Renders timeframe selector, budget input, cook time, servings, calorie target,
+ * available ingredients, and dietary restriction chips. Validates all inputs
+ * via `generateMealPlanSchema` before passing to the `onSubmit` callback.
+ *
+ * Uses `useTranslation()` for all labels and `useCurrency()` to show the budget
+ * label in the user's currency code (e.g. "Budget (EUR/week)").
+ */
+
 import { View, Text, Pressable, ScrollView, Animated, Alert } from 'react-native';
 import { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
@@ -7,13 +20,24 @@ import { GenerateMealPlanRequest, DietaryRestriction } from '../../lib/types';
 import { DIETARY_OPTIONS } from '../../lib/constants';
 import { useProfile } from '../../hooks/useProfile';
 import { useOnboardingStore } from '../../stores/onboardingStore';
+import { useCurrency } from '../../hooks/useCurrency';
 import { generateMealPlanSchema } from '../../lib/validation';
 
+/** Props for {@link GenerateForm}. */
 interface GenerateFormProps {
+  /** Called with the validated request when the user submits the form. */
   onSubmit: (request: GenerateMealPlanRequest) => void;
+  /** When true, the submit button shows a loading spinner. */
   loading: boolean;
 }
 
+/**
+ * A pill-shaped button for selecting a plan timeframe (Day / Week / Month).
+ *
+ * @param props.label - Display label.
+ * @param props.isSelected - Whether this button is currently selected.
+ * @param props.onPress - Called when the button is tapped.
+ */
 function TimeframeButton({
   label,
   isSelected,
@@ -67,6 +91,13 @@ function TimeframeButton({
   );
 }
 
+/**
+ * A chip button for toggling a dietary restriction on or off.
+ *
+ * @param props.label - Display label for the restriction.
+ * @param props.isSelected - Whether this restriction is currently selected.
+ * @param props.onPress - Called when the chip is tapped.
+ */
 function DietaryChip({
   label,
   isSelected,
@@ -120,10 +151,19 @@ function DietaryChip({
   );
 }
 
+/**
+ * Renders the meal generation form with all input fields and a submit button.
+ *
+ * @param props.onSubmit - Called with the validated {@link GenerateMealPlanRequest}.
+ * @param props.loading - When true, disables the form and shows a spinner.
+ * @returns A scrollable form for configuring a meal plan generation request.
+ */
 export function GenerateForm({ onSubmit, loading }: GenerateFormProps) {
+  const { t } = useTranslation();
   const { data: profile } = useProfile();
   // Pull language and currency from store so generated recipes match the user's locale
-  const { language, currency } = useOnboardingStore();
+  const { language } = useOnboardingStore();
+  const { currency } = useCurrency();
 
   const [timeframe, setTimeframe] = useState<'day' | 'week' | 'month'>('week');
   const [budget, setBudget] = useState(profile?.weekly_budget?.toString() ?? '50');
@@ -156,7 +196,7 @@ export function GenerateForm({ onSubmit, loading }: GenerateFormProps) {
     // Validate all inputs (ranges, types, prompt injection on ingredients)
     const result = generateMealPlanSchema.safeParse(request);
     if (!result.success) {
-      Alert.alert('Invalid Input', result.error.issues[0].message);
+      Alert.alert(t('common.error'), result.error.issues[0].message);
       return;
     }
 
@@ -167,22 +207,25 @@ export function GenerateForm({ onSubmit, loading }: GenerateFormProps) {
     <ScrollView showsVerticalScrollIndicator={false}>
       {/* Timeframe */}
       <Text className="text-base font-semibold text-slate-900 dark:text-white mb-3">
-        Plan duration
+        {t('generate.planDuration')}
       </Text>
       <View className="flex-row gap-2 mb-6">
         {(['day', 'week', 'month'] as const).map((tf) => (
           <TimeframeButton
             key={tf}
-            label={tf.charAt(0).toUpperCase() + tf.slice(1)}
+            label={t(`generate.timeframe${tf.charAt(0).toUpperCase() + tf.slice(1)}`)}
             isSelected={timeframe === tf}
             onPress={() => setTimeframe(tf)}
           />
         ))}
       </View>
 
-      {/* Budget */}
+      {/* Budget — label shows the user's ISO currency code so they know the unit */}
       <Input
-        label={`Budget ($${timeframe === 'day' ? '/day' : timeframe === 'week' ? '/week' : '/month'})`}
+        label={t('generate.budgetLabel', {
+          currency,
+          period: t(`generate.budgetPeriod${timeframe.charAt(0).toUpperCase() + timeframe.slice(1)}`),
+        })}
         placeholder="50"
         value={budget}
         onChangeText={setBudget}
@@ -192,7 +235,7 @@ export function GenerateForm({ onSubmit, loading }: GenerateFormProps) {
 
       {/* Cook time */}
       <Input
-        label="Max cook time per meal (minutes)"
+        label={t('generate.maxCookTime')}
         placeholder="30"
         value={maxCookTime}
         onChangeText={setMaxCookTime}
@@ -202,7 +245,7 @@ export function GenerateForm({ onSubmit, loading }: GenerateFormProps) {
 
       {/* Servings */}
       <Input
-        label="Servings per meal"
+        label={t('generate.servings')}
         placeholder="1"
         value={servings}
         onChangeText={setServings}
@@ -212,7 +255,7 @@ export function GenerateForm({ onSubmit, loading }: GenerateFormProps) {
 
       {/* Daily Calories */}
       <Input
-        label="Daily calorie target (optional)"
+        label={t('generate.dailyCalories')}
         placeholder="2000"
         value={dailyCalories}
         onChangeText={setDailyCalories}
@@ -222,8 +265,8 @@ export function GenerateForm({ onSubmit, loading }: GenerateFormProps) {
 
       {/* Ingredients */}
       <Input
-        label="Available ingredients (optional, comma-separated)"
-        placeholder="rice, chicken, broccoli, eggs..."
+        label={t('generate.availableIngredients')}
+        placeholder={t('generate.ingredientsPlaceholder')}
         value={ingredients}
         onChangeText={setIngredients}
         multiline
@@ -232,7 +275,7 @@ export function GenerateForm({ onSubmit, loading }: GenerateFormProps) {
 
       {/* Dietary */}
       <Text className="text-base font-semibold text-slate-900 dark:text-white mb-3">
-        Dietary restrictions
+        {t('generate.dietaryRestrictions')}
       </Text>
       <View className="flex-row flex-wrap gap-2 mb-8">
         {DIETARY_OPTIONS.map((option) => {
@@ -255,7 +298,7 @@ export function GenerateForm({ onSubmit, loading }: GenerateFormProps) {
       </View>
 
       <Button
-        title="Generate Meal Plan"
+        title={t('generate.generateButton')}
         onPress={handleSubmit}
         loading={loading}
         size="lg"

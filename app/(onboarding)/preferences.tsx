@@ -14,6 +14,7 @@
 import { View, Text, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../../components/ui/Button';
 import { ProgressDots } from '../../components/onboarding/ProgressDots';
 import { PreferencesForm } from '../../components/forms/PreferencesForm';
@@ -21,11 +22,13 @@ import { useOnboardingStore } from '../../stores/onboardingStore';
 
 /** Step 3 of the onboarding flow: budget, skill level, and dietary preferences. */
 export default function PreferencesScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const {
     weekly_budget,
     skill_level,
     dietary_restrictions,
+    currency,
     setBudget,
     setSkillLevel,
     toggleDietaryRestriction,
@@ -40,10 +43,10 @@ export default function PreferencesScreen() {
         </View>
 
         <Text className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
-          Your preferences
+          {t('onboarding.preferences.title')}
         </Text>
         <Text className="text-base text-slate-500 dark:text-slate-400 mb-8">
-          Help us find the perfect meals for you
+          {t('onboarding.preferences.subtitle')}
         </Text>
 
         {/* Shared preferences form — identical UI to settings screen */}
@@ -54,12 +57,13 @@ export default function PreferencesScreen() {
           onSkillLevelChange={setSkillLevel}
           dietaryRestrictions={dietary_restrictions}
           onDietaryRestrictionToggle={toggleDietaryRestriction}
+          currency={currency}
         />
       </ScrollView>
 
       <View className="px-6 pb-8 pt-4 bg-stone-50 dark:bg-slate-950">
         <Button
-          title="Continue"
+          title={t('common.continue')}
           onPress={() => router.push('/(onboarding)/complete')}
           disabled={!skill_level}
           size="lg"

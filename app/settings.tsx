@@ -44,17 +44,15 @@ import { DietaryRestriction, Profile } from '../lib/types';
 import { LANGUAGES, CURRENCIES } from '../lib/constants';
 import { changeLanguage } from '../lib/i18n';
 
-/** Goal options displayed in the Goal card. */
+/** Goal options displayed in the Goal card. Labels resolved via t() at render time. */
 const GOAL_DATA: {
   key: string;
-  label: string;
-  description: string;
   icon: keyof typeof Ionicons.glyphMap;
 }[] = [
-  { key: 'save_money', label: 'Save Money', description: 'Eat well on a tight budget', icon: 'wallet-outline' },
-  { key: 'eat_healthy', label: 'Eat Healthy', description: 'Balanced nutrition & macros', icon: 'heart-outline' },
-  { key: 'learn_to_cook', label: 'Learn to Cook', description: 'Build kitchen confidence', icon: 'flame-outline' },
-  { key: 'save_time', label: 'Save Time', description: 'Quick & easy meals', icon: 'time-outline' },
+  { key: 'save_money', icon: 'wallet-outline' },
+  { key: 'eat_healthy', icon: 'heart-outline' },
+  { key: 'learn_to_cook', icon: 'flame-outline' },
+  { key: 'save_time', icon: 'time-outline' },
 ];
 
 /** Settings screen — goal, preferences, language/currency, appearance, danger zone. */
@@ -234,8 +232,8 @@ export default function SettingsScreen() {
           {GOAL_DATA.map((g) => (
             <GoalOption
               key={g.key}
-              label={g.label}
-              description={g.description}
+              label={t(`onboarding.goals.${g.key}`)}
+              description={t(`onboarding.goals.${g.key}_desc`)}
               iconName={g.icon}
               selected={goal === g.key}
               onPress={() => setGoal(g.key)}

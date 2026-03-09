@@ -25,6 +25,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
 import { useOnboardingStore } from '../../stores/onboardingStore';
@@ -35,6 +36,7 @@ const RESEND_COOLDOWN_SECONDS = 60;
 const CODE_EXPIRY_SECONDS = 300; // 5 minutes
 
 export default function VerifyScreen() {
+  const { t } = useTranslation();
   const { email } = useLocalSearchParams<{ email: string }>();
   const router = useRouter();
 
@@ -108,7 +110,7 @@ export default function VerifyScreen() {
     setResending(false);
 
     if (resendError) {
-      Alert.alert('Error', resendError.message);
+      Alert.alert(t('common.error'), resendError.message);
       return;
     }
 
@@ -128,23 +130,26 @@ export default function VerifyScreen() {
               <Ionicons name="mail" size={32} color="#10B981" />
             </View>
             <Text className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
-              Check your email
+              {t('auth.checkEmail')}
             </Text>
             <Text className="text-base text-slate-500 dark:text-slate-400 text-center">
-              We sent an 8-digit code to{'\n'}
+              {t('auth.codeSentTo')}{'\n'}
               <Text className="font-semibold text-slate-700 dark:text-slate-300">
                 {email}
               </Text>
             </Text>
+            {/* Format mm:ss countdown for the expiry timer */}
             <Text className={`text-sm mt-2 ${expiryTime > 0 ? 'text-slate-400 dark:text-slate-500' : 'text-rose-500 dark:text-rose-400'}`}>
               {expiryTime > 0
-                ? `Code expires in ${Math.floor(expiryTime / 60)}:${(expiryTime % 60).toString().padStart(2, '0')}`
-                : 'Code expired'}
+                ? t('auth.codeExpires', {
+                    time: `${Math.floor(expiryTime / 60)}:${(expiryTime % 60).toString().padStart(2, '0')}`,
+                  })
+                : t('auth.codeExpired')}
             </Text>
           </View>
 
           <Input
-            label="Verification code"
+            label={t('auth.verificationCode')}
             placeholder="00000000"
             value={code}
             onChangeText={(text) => {
@@ -158,7 +163,7 @@ export default function VerifyScreen() {
           />
 
           <Button
-            title="Verify"
+            title={t('auth.verify')}
             onPress={handleVerify}
             loading={verifying}
             disabled={code.length !== 8 || expiryTime <= 0}
@@ -167,7 +172,7 @@ export default function VerifyScreen() {
           />
 
           <Button
-            title={cooldown > 0 ? `Resend code (${cooldown}s)` : 'Resend code'}
+            title={cooldown > 0 ? t('auth.resendCodeTimer', { seconds: cooldown }) : t('auth.resendCode')}
             onPress={handleResend}
             loading={resending}
             disabled={cooldown > 0}
@@ -177,7 +182,7 @@ export default function VerifyScreen() {
           />
 
           <Button
-            title="Use a different email"
+            title={t('auth.useDifferentEmail')}
             onPress={() => router.back()}
             variant="ghost"
             size="sm"

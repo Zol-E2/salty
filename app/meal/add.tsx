@@ -25,9 +25,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useMeals } from '../../hooks/useMeals';
 import { useAddMealToPlan } from '../../hooks/useMealPlan';
+import { useOnboardingStore } from '../../stores/onboardingStore';
 import { MealCard } from '../../components/meal/MealCard';
 import { Input } from '../../components/ui/Input';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
@@ -50,6 +52,8 @@ function isMealSlotType(value: string): value is MealSlotType {
  * when an empty meal slot is tapped.
  */
 export default function AddMealScreen() {
+  const { t } = useTranslation();
+  const language = useOnboardingStore((s) => s.language);
   const { date, slot } = useLocalSearchParams<{
     date: string;
     slot: string;
@@ -69,14 +73,14 @@ export default function AddMealScreen() {
   /** Validates params, inserts the meal plan item, and navigates back on success. */
   const handleAddMeal = async (mealId: string) => {
     if (!validSlot) {
-      Alert.alert('Error', 'Invalid meal slot. Please try again.');
+      Alert.alert(t('common.error'), 'Invalid meal slot. Please try again.');
       return;
     }
     try {
       await addMeal.mutateAsync({ meal_id: mealId, date, slot: validSlot });
       router.back();
     } catch {
-      Alert.alert('Error', 'Failed to add meal to plan');
+      Alert.alert(t('common.error'), 'Failed to add meal to plan');
     }
   };
 
@@ -89,11 +93,12 @@ export default function AddMealScreen() {
         </TouchableOpacity>
         <View>
           <Text className="text-xl font-bold text-slate-900 dark:text-white">
-            Add {slotLabel}
+            {t('meal.addSlotTitle', { slot: slotLabel })}
           </Text>
           {date && (
             <Text className="text-sm text-slate-500 dark:text-slate-400">
-              {new Date(date + 'T12:00:00').toLocaleDateString('en-US', {
+              {/* Use user's language for locale-aware short date formatting */}
+              {new Date(date + 'T12:00:00').toLocaleDateString(language, {
                 month: 'short',
                 day: 'numeric',
               })}
@@ -105,7 +110,7 @@ export default function AddMealScreen() {
       {/* --- Search --- */}
       <View className="px-5 pt-3 pb-2">
         <Input
-          placeholder="Search your meals..."
+          placeholder={t('meal.searchPlaceholder')}
           value={search}
           onChangeText={setSearch}
           autoCapitalize="none"
@@ -140,9 +145,7 @@ export default function AddMealScreen() {
               color="#CBD5E1"
             />
             <Text className="text-base text-slate-400 dark:text-slate-500 mt-3 text-center">
-              {search
-                ? 'No meals found. Try a different search.'
-                : 'No meals yet. Generate some with AI!'}
+              {search ? t('meal.noMealsSearch') : t('meal.noMealsYet')}
             </Text>
             <TouchableOpacity
               onPress={() => router.push('/(tabs)/generate')}
@@ -150,7 +153,7 @@ export default function AddMealScreen() {
             >
               <Ionicons name="sparkles" size={16} color="#10B981" />
               <Text className="text-sm font-semibold text-primary-500 dark:text-primary-400 ml-1">
-                Generate meals with AI
+                {t('meal.generateWithAi')}
               </Text>
             </TouchableOpacity>
           </View>

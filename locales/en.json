@@ -10,6 +10,22 @@
     "today": "Today",
     "version": "Version"
   },
+  "auth": {
+    "loginSubtitle": "Meal planning made easy for students",
+    "emailLabel": "Email address",
+    "emailPlaceholder": "you@university.edu",
+    "emailHint": "We'll send you an 8-digit code. No password needed.",
+    "sendCode": "Send Code",
+    "checkEmail": "Check your email",
+    "codeSentTo": "We sent an 8-digit code to",
+    "codeExpires": "Code expires in {{time}}",
+    "codeExpired": "Code expired",
+    "verificationCode": "Verification code",
+    "verify": "Verify",
+    "resendCode": "Resend code",
+    "resendCodeTimer": "Resend in {{seconds}}s",
+    "useDifferentEmail": "Use a different email"
+  },
   "onboarding": {
     "welcome": {
       "title": "Welcome to Salty",
@@ -55,7 +71,21 @@
       "title": "Unlock the full experience",
       "subtitle": "Choose a plan that fits your budget",
       "mostPopular": "Most Popular",
-      "forever": "forever"
+      "forever": "forever",
+      "planFree": "Free",
+      "planPro": "Pro",
+      "planProPlus": "Pro+",
+      "featureFreeAi": "3 AI meal plans / week",
+      "featureFreeRecipes": "Basic recipes",
+      "featureFreeCalendar": "Calendar view",
+      "featureProUnlimited": "Unlimited AI meal plans",
+      "featureProMacros": "Detailed macros & nutrition",
+      "featureProGrocery": "Grocery list export",
+      "featureProSupport": "Priority support",
+      "featureProPlusEverything": "Everything in Pro",
+      "featureProPlusBatch": "Meal prep batch planning",
+      "featureProPlusShare": "Share plans with roommates",
+      "featureProPlusRecipe": "Custom recipe import"
     }
   },
   "tabs": {
@@ -72,6 +102,14 @@
     "addMeals": "Add meals",
     "unknownMeal": "Unknown meal"
   },
+  "day": {
+    "removeMeal": "Remove meal",
+    "removeMealConfirm": "Remove this meal from your plan?",
+    "daySummary": "Day Summary",
+    "calories": "Calories",
+    "cost": "Cost",
+    "time": "Time"
+  },
   "generate": {
     "title": "AI Generate",
     "titlePreview": "Your Meal Plan",
@@ -81,7 +119,30 @@
     "generatingMeals": "Generating your meals...",
     "errorTitle": "Generation Failed",
     "errorSlowDown": "Slow Down",
-    "errorSave": "Could not save meal plan."
+    "errorSave": "Could not save meal plan.",
+    "planDuration": "Plan duration",
+    "timeframeDay": "Day",
+    "timeframeWeek": "Week",
+    "timeframeMonth": "Month",
+    "budgetLabel": "Budget ({{currency}}/{{period}})",
+    "budgetPeriodDay": "day",
+    "budgetPeriodWeek": "week",
+    "budgetPeriodMonth": "month",
+    "maxCookTime": "Max cook time per meal (minutes)",
+    "servings": "Servings per meal",
+    "dailyCalories": "Daily calorie target (optional)",
+    "availableIngredients": "Available ingredients (optional, comma-separated)",
+    "ingredientsPlaceholder": "rice, chicken, broccoli, eggs...",
+    "dietaryRestrictions": "Dietary restrictions",
+    "generateButton": "Generate Meal Plan",
+    "saveFailed": "Save Failed",
+    "generatedMeals": "Generated {{count}} meals",
+    "estCost": "Est. cost:",
+    "avgCalMeal": "Avg: {{calories}} cal/meal",
+    "dayLabel": "Day {{number}}",
+    "saveToCalendar": "Save to Calendar",
+    "tryAgain": "Try Again",
+    "discard": "Discard"
   },
   "profile": {
     "title": "Profile",
@@ -161,6 +222,19 @@
     "breakfast": "Breakfast",
     "lunch": "Lunch",
     "dinner": "Dinner",
-    "snack": "Snack"
+    "snack": "Snack",
+    "loading": "Loading meal...",
+    "aiGenerated": "AI Generated",
+    "nutrition": "Nutrition",
+    "ingredients": "Ingredients",
+    "instructions": "Instructions",
+    "prep": "Prep",
+    "cook": "Cook",
+    "level": "Level",
+    "searchPlaceholder": "Search your meals...",
+    "noMealsSearch": "No meals found. Try a different search.",
+    "noMealsYet": "No meals yet. Generate some with AI!",
+    "generateWithAi": "Generate meals with AI",
+    "addSlotTitle": "Add {{slot}}"
   }
 }

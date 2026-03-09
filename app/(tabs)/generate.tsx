@@ -25,6 +25,7 @@
 import { useState } from 'react';
 import { View, Text, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useTabControl } from '../../hooks/useTabControl';
 import { SaltShakerLoader } from '../../components/ui/SaltShakerLoader';
@@ -37,6 +38,7 @@ import { GenerateMealPlanRequest, GeneratedMeal, MealSlotType } from '../../lib/
 import { useQueryClient } from '@tanstack/react-query';
 
 export default function GenerateScreen() {
+  const { t } = useTranslation();
   const { setPage } = useTabControl();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -59,7 +61,7 @@ export default function GenerateScreen() {
     } catch (error: any) {
       const message = error.message || 'Something went wrong. Please try again.';
       Alert.alert(
-        message.includes('too many') ? 'Slow Down' : 'Generation Failed',
+        message.includes('too many') ? t('generate.errorSlowDown') : t('generate.errorTitle'),
         message
       );
     } finally {
@@ -136,7 +138,7 @@ export default function GenerateScreen() {
       // work here because this layout bypasses Expo Router's <Tabs> component.
       setPage(0);
     } catch (error: any) {
-      Alert.alert('Save Failed', error.message || 'Could not save meal plan.');
+      Alert.alert(t('generate.saveFailed'), error.message || t('generate.errorSave'));
     } finally {
       setSaving(false);
     }
@@ -158,20 +160,20 @@ export default function GenerateScreen() {
         <View className="flex-row items-center mb-1">
           <Ionicons name="sparkles" size={22} color="#10B981" />
           <Text className="text-2xl font-bold text-slate-900 dark:text-white ml-2">
-            {generatedMeals ? 'Your Meal Plan' : 'AI Generate'}
+            {generatedMeals ? t('generate.titlePreview') : t('generate.title')}
           </Text>
         </View>
         <Text className="text-sm text-slate-500 dark:text-slate-400">
-          {generatedMeals
-            ? 'Review your generated meals before saving'
-            : 'Tell us what you need and we\'ll create a plan'}
+          {generatedMeals ? t('generate.subtitlePreview') : t('generate.subtitle')}
         </Text>
       </View>
 
       <View className="flex-1 px-5 pt-4">
         {loading ? (
           <SaltShakerLoader
-            message={progress ? `Generating week ${progress.current} of ${progress.total}...` : 'Generating your meals...'}
+            message={progress
+              ? t('generate.generatingWeek', { current: progress.current, total: progress.total })
+              : t('generate.generatingMeals')}
             showTips
             timeframe={lastRequest?.timeframe}
           />

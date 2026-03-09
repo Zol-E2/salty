@@ -16,9 +16,11 @@
 import { View, Text, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { TouchableOpacity } from 'react-native';
 import { useMeal } from '../../hooks/useMeals';
+import { useCurrency } from '../../hooks/useCurrency';
 import { MacroBar } from '../../components/meal/MacroBar';
 import { IngredientList } from '../../components/meal/IngredientList';
 import { InstructionSteps } from '../../components/meal/InstructionSteps';
@@ -28,12 +30,14 @@ import { SLOT_COLORS } from '../../lib/constants';
 import { MealSlotType } from '../../lib/types';
 
 export default function MealDetailScreen() {
+  const { t } = useTranslation();
+  const { format } = useCurrency();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { data: meal, isLoading } = useMeal(id);
 
   if (isLoading || !meal) {
-    return <LoadingSpinner message="Loading meal..." />;
+    return <LoadingSpinner message={t('meal.loading')} />;
   }
 
   const totalCost = meal.ingredients.reduce(
@@ -72,7 +76,7 @@ export default function MealDetailScreen() {
             ))}
             <Badge label={meal.difficulty} color="#64748B" />
             {meal.is_ai_generated && (
-              <Badge label="AI Generated" color="#8B5CF6" />
+              <Badge label={t('meal.aiGenerated')} color="#8B5CF6" />
             )}
           </View>
 
@@ -80,22 +84,22 @@ export default function MealDetailScreen() {
           <View className="flex-row bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-4 mb-6">
             <QuickStat
               icon="time-outline"
-              label="Prep"
+              label={t('meal.prep')}
               value={`${meal.prep_time_min}m`}
             />
             <QuickStat
               icon="flame-outline"
-              label="Cook"
+              label={t('meal.cook')}
               value={`${meal.cook_time_min}m`}
             />
             <QuickStat
               icon="cash-outline"
-              label="Cost"
-              value={`$${meal.estimated_cost.toFixed(2)}`}
+              label={t('day.cost')}
+              value={format(meal.estimated_cost)}
             />
             <QuickStat
               icon="speedometer-outline"
-              label="Level"
+              label={t('meal.level')}
               value={meal.difficulty}
               isLast
             />
@@ -104,7 +108,7 @@ export default function MealDetailScreen() {
           {/* Macros */}
           <View className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-4 mb-6">
             <Text className="text-base font-semibold text-slate-900 dark:text-white mb-3">
-              Nutrition
+              {t('meal.nutrition')}
             </Text>
             <MacroBar
               calories={meal.calories}
@@ -118,10 +122,10 @@ export default function MealDetailScreen() {
           <View className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-4 mb-6">
             <View className="flex-row items-center justify-between mb-2">
               <Text className="text-base font-semibold text-slate-900 dark:text-white">
-                Ingredients
+                {t('meal.ingredients')}
               </Text>
               <Text className="text-sm text-slate-500 dark:text-slate-400">
-                ~${totalCost.toFixed(2)}
+                ~{format(totalCost)}
               </Text>
             </View>
             <IngredientList ingredients={meal.ingredients} />
@@ -130,7 +134,7 @@ export default function MealDetailScreen() {
           {/* Instructions */}
           <View className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-4">
             <Text className="text-base font-semibold text-slate-900 dark:text-white mb-4">
-              Instructions
+              {t('meal.instructions')}
             </Text>
             <InstructionSteps instructions={meal.instructions} />
           </View>

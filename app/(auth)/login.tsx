@@ -22,6 +22,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
 import { emailSchema } from '../../lib/validation';
@@ -29,6 +30,7 @@ import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 
 export default function LoginScreen() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -37,7 +39,7 @@ export default function LoginScreen() {
     // Validate email format and length before sending
     const result = emailSchema.safeParse(email);
     if (!result.success) {
-      Alert.alert('Invalid Email', result.error.issues[0].message);
+      Alert.alert(t('common.error'), result.error.issues[0].message);
       return;
     }
 
@@ -49,7 +51,7 @@ export default function LoginScreen() {
     setLoading(false);
 
     if (error) {
-      Alert.alert('Error', error.message);
+      Alert.alert(t('common.error'), error.message);
       return;
     }
 
@@ -71,14 +73,14 @@ export default function LoginScreen() {
               Salty
             </Text>
             <Text className="text-base text-slate-500 dark:text-slate-400 text-center">
-              Meal planning made easy for students
+              {t('auth.loginSubtitle')}
             </Text>
           </View>
 
           <View>
             <Input
-              label="Email address"
-              placeholder="you@university.edu"
+              label={t('auth.emailLabel')}
+              placeholder={t('auth.emailPlaceholder')}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -87,7 +89,7 @@ export default function LoginScreen() {
             />
 
             <Button
-              title="Send Code"
+              title={t('auth.sendCode')}
               onPress={handleSendOtp}
               loading={loading}
               disabled={!email.trim()}
@@ -96,7 +98,7 @@ export default function LoginScreen() {
             />
 
             <Text className="text-sm text-slate-400 dark:text-slate-500 text-center">
-              We'll send you an 8-digit code. No password needed.
+              {t('auth.emailHint')}
             </Text>
           </View>
         </View>

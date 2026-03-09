@@ -1,16 +1,43 @@
+/**
+ * @file components/meal/MealCard.tsx
+ * Reusable card component for displaying a single saved meal.
+ *
+ * Two variants:
+ *   - Default: large card with image placeholder, description, and stats row.
+ *   - Compact: slim row for use in lists (e.g. AddMealScreen, CalendarScreen).
+ *
+ * Currency display uses `useCurrency()` so costs render in the user's chosen
+ * currency rather than a hardcoded `$` symbol.
+ */
+
 import { TouchableOpacity, View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Meal } from '../../lib/types';
 import { Badge } from '../ui/Badge';
 import { SLOT_COLORS } from '../../lib/constants';
+import { useCurrency } from '../../hooks/useCurrency';
 
+/** Props for {@link MealCard}. */
 interface MealCardProps {
+  /** The saved meal object to render. */
   meal: Meal;
+  /** Called when the card is tapped. */
   onPress: () => void;
+  /** When true, renders the compact single-row layout. Defaults to false. */
   compact?: boolean;
 }
 
+/**
+ * Displays a meal in either full-card or compact-row format.
+ *
+ * @param props.meal - The meal to display.
+ * @param props.onPress - Tap handler.
+ * @param props.compact - If true, uses the compact row layout.
+ * @returns A touchable card or row representing the meal.
+ */
 export function MealCard({ meal, onPress, compact = false }: MealCardProps) {
+  const { format } = useCurrency();
+
   if (compact) {
     return (
       <TouchableOpacity
@@ -29,7 +56,7 @@ export function MealCard({ meal, onPress, compact = false }: MealCardProps) {
             {meal.name}
           </Text>
           <Text className="text-xs text-slate-500 dark:text-slate-400">
-            {meal.calories} cal · ${meal.estimated_cost.toFixed(2)}
+            {meal.calories} cal · {format(meal.estimated_cost)}
           </Text>
         </View>
         <Ionicons name="chevron-forward" size={16} color="#94A3B8" />
@@ -74,7 +101,7 @@ export function MealCard({ meal, onPress, compact = false }: MealCardProps) {
           <View className="flex-row items-center">
             <Ionicons name="cash-outline" size={14} color="#64748B" />
             <Text className="text-xs text-slate-500 dark:text-slate-400 ml-1">
-              ${meal.estimated_cost.toFixed(2)}
+              {format(meal.estimated_cost)}
             </Text>
           </View>
         </View>

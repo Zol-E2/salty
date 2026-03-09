@@ -1,57 +1,57 @@
+/**
+ * @file app/(onboarding)/paywall.tsx
+ * Onboarding step 5 of 6 — subscription plan selection.
+ *
+ * Shows Free / Pro / Pro+ tiers with feature lists. Plan names and feature
+ * strings are translated via `useTranslation()`. Subscription prices ($0,
+ * $4.99, $9.99) remain hardcoded in USD — they are not meal costs and must
+ * not go through `formatAmount()`.
+ */
+
 import { View, Text, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { Button } from '../../components/ui/Button';
 import { ProgressDots } from '../../components/onboarding/ProgressDots';
 
-const PLANS = [
+/**
+ * Static plan configuration. Translated names and features are resolved at
+ * render time using `t()` keys. Prices stay hardcoded in USD as they are
+ * subscription price points, not meal costs.
+ */
+const PLAN_CONFIG = [
   {
-    name: 'Free',
+    nameKey: 'planFree',
     price: '$0',
-    period: 'forever',
+    periodKey: 'forever',
     highlight: false,
-    features: [
-      '3 AI meal plans / week',
-      'Basic recipes',
-      'Calendar view',
-    ],
-    missing: [
-      'Unlimited AI generations',
-      'Detailed macros & nutrition',
-      'Grocery list export',
-    ],
+    featureKeys: ['featureFreeAi', 'featureFreeRecipes', 'featureFreeCalendar'],
+    missingKeys: ['featureProUnlimited', 'featureProMacros', 'featureProGrocery'],
   },
   {
-    name: 'Pro',
+    nameKey: 'planPro',
     price: '$4.99',
-    period: '/month',
+    periodKey: null, // '/month' suffix is a hardcoded string not a locale key
     highlight: true,
-    badge: 'Most Popular',
-    features: [
-      'Unlimited AI meal plans',
-      'Detailed macros & nutrition',
-      'Grocery list export',
-      'Priority support',
-    ],
-    missing: [],
+    badgeKey: 'mostPopular',
+    featureKeys: ['featureProUnlimited', 'featureProMacros', 'featureProGrocery', 'featureProSupport'],
+    missingKeys: [],
   },
   {
-    name: 'Pro+',
+    nameKey: 'planProPlus',
     price: '$9.99',
-    period: '/month',
+    periodKey: null,
     highlight: false,
-    features: [
-      'Everything in Pro',
-      'Meal prep batch planning',
-      'Share plans with roommates',
-      'Custom recipe import',
-    ],
-    missing: [],
+    featureKeys: ['featureProPlusEverything', 'featureProPlusBatch', 'featureProPlusShare', 'featureProPlusRecipe'],
+    missingKeys: [],
   },
 ];
 
+/** Onboarding step 5: subscription plan selection. */
 export default function PaywallScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
 
   return (
@@ -67,17 +67,17 @@ export default function PaywallScreen() {
             <Ionicons name="star" size={28} color="#F59E0B" />
           </View>
           <Text className="text-2xl font-bold text-slate-900 dark:text-white text-center mb-2">
-            Unlock the full experience
+            {t('onboarding.paywall.title')}
           </Text>
           <Text className="text-base text-slate-500 dark:text-slate-400 text-center">
-            Choose a plan that fits your budget
+            {t('onboarding.paywall.subtitle')}
           </Text>
         </View>
 
         <View className="px-6 gap-3 pb-4">
-          {PLANS.map((plan) => (
+          {PLAN_CONFIG.map((plan) => (
             <View
-              key={plan.name}
+              key={plan.nameKey}
               className={`rounded-2xl p-4 border-2 ${
                 plan.highlight
                   ? 'border-primary-500 bg-primary-50 dark:border-primary-400 dark:bg-primary-400/10'
@@ -93,12 +93,12 @@ export default function PaywallScreen() {
                         : 'text-slate-900 dark:text-white'
                     }`}
                   >
-                    {plan.name}
+                    {t(`onboarding.paywall.${plan.nameKey}`)}
                   </Text>
-                  {plan.badge && (
+                  {plan.badgeKey && (
                     <View className="bg-primary-500 dark:bg-primary-400 px-2 py-0.5 rounded-full">
                       <Text className="text-xs font-bold text-white">
-                        {plan.badge}
+                        {t(`onboarding.paywall.${plan.badgeKey}`)}
                       </Text>
                     </View>
                   )}
@@ -113,26 +113,29 @@ export default function PaywallScreen() {
                   >
                     {plan.price}
                   </Text>
+                  {/* Period is localised for 'forever'; '/month' is a hardcoded suffix */}
                   <Text className="text-sm text-slate-500 dark:text-slate-400">
-                    {plan.period}
+                    {plan.periodKey
+                      ? ` ${t(`onboarding.paywall.${plan.periodKey}`)}`
+                      : ' /month'}
                   </Text>
                 </View>
               </View>
 
-              {plan.features.map((feature) => (
-                <View key={feature} className="flex-row items-center mt-1.5">
+              {plan.featureKeys.map((key) => (
+                <View key={key} className="flex-row items-center mt-1.5">
                   <Ionicons name="checkmark-circle" size={16} color="#10B981" />
                   <Text className="text-sm text-slate-700 dark:text-slate-300 ml-2">
-                    {feature}
+                    {t(`onboarding.paywall.${key}`)}
                   </Text>
                 </View>
               ))}
 
-              {plan.missing?.map((feature) => (
-                <View key={feature} className="flex-row items-center mt-1.5">
+              {plan.missingKeys.map((key) => (
+                <View key={key} className="flex-row items-center mt-1.5">
                   <Ionicons name="close-circle" size={16} color="#CBD5E1" />
                   <Text className="text-sm text-slate-400 dark:text-slate-500 ml-2">
-                    {feature}
+                    {t(`onboarding.paywall.${key}`)}
                   </Text>
                 </View>
               ))}
@@ -143,7 +146,7 @@ export default function PaywallScreen() {
 
       <View className="px-6 pb-8 pt-4 bg-stone-50 dark:bg-slate-950">
         <Button
-          title="Continue"
+          title={t('common.continue')}
           onPress={() => router.push('/(auth)/login')}
           size="lg"
         />

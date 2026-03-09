@@ -1,12 +1,31 @@
+/**
+ * @file components/meal/IngredientList.tsx
+ * Renders a list of meal ingredients with quantity and estimated cost per item.
+ *
+ * Currency display uses `useCurrency()` so per-ingredient costs render in the
+ * user's chosen currency rather than a hardcoded `$` symbol.
+ */
+
 import { View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Ingredient } from '../../lib/types';
+import { useCurrency } from '../../hooks/useCurrency';
 
+/** Props for {@link IngredientList}. */
 interface IngredientListProps {
+  /** The list of ingredients to display. */
   ingredients: Ingredient[];
 }
 
+/**
+ * Renders each ingredient as a row with name, quantity, and estimated cost.
+ *
+ * @param props.ingredients - Array of ingredients to display.
+ * @returns A list of ingredient rows.
+ */
 export function IngredientList({ ingredients }: IngredientListProps) {
+  const { format } = useCurrency();
+
   return (
     <View>
       {ingredients.map((ingredient, index) => (
@@ -30,7 +49,7 @@ export function IngredientList({ ingredients }: IngredientListProps) {
             </Text>
           </View>
           <Text className="text-sm font-medium text-slate-500 dark:text-slate-400">
-            ${ingredient.estimated_cost.toFixed(2)}
+            {format(ingredient.estimated_cost)}
           </Text>
         </View>
       ))}

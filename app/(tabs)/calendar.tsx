@@ -23,11 +23,13 @@ import { useState, useMemo } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, SectionList, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Calendar } from 'react-native-calendars';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from 'react-native';
 import { useMealPlanForMonth } from '../../hooks/useMealPlan';
 import { useThemeStore } from '../../stores/themeStore';
+import { useOnboardingStore } from '../../stores/onboardingStore';
 import { SLOT_COLORS, MEAL_SLOTS } from '../../lib/constants';
 import { MealSlotType } from '../../lib/types';
 import { AnimatedCard } from '../../components/ui/AnimatedCard';
@@ -37,7 +39,9 @@ const SLOT_ORDER: Record<string, number> = Object.fromEntries(
 );
 
 export default function CalendarScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
+  const language = useOnboardingStore((s) => s.language);
   const today = new Date().toISOString().split('T')[0];
   const [selectedDate, setSelectedDate] = useState(today);
   const [viewMode, setViewMode] = useState<'month' | 'list'>('month');
@@ -69,8 +73,9 @@ export default function CalendarScreen() {
     return marks;
   }, [planItems]);
 
+  // Use the user's chosen language for date formatting instead of hardcoded 'en-US'
   const selectedDateFormatted = new Date(selectedDate + 'T12:00:00')
-    .toLocaleDateString('en-US', {
+    .toLocaleDateString(language, {
       weekday: 'long',
       month: 'long',
       day: 'numeric',
@@ -146,7 +151,7 @@ export default function CalendarScreen() {
     <SafeAreaView edges={['top', 'left', 'right']} className="flex-1 bg-stone-50 dark:bg-slate-950">
       <View className="px-5 pt-4 pb-2 flex-row items-center justify-between">
         <Text className="text-2xl font-bold text-slate-900 dark:text-white">
-          Meal Plan
+          {t('tabs.calendar')}
         </Text>
         <View className="flex-row bg-slate-100 dark:bg-slate-800 rounded-xl p-0.5">
           <TouchableOpacity
@@ -164,7 +169,7 @@ export default function CalendarScreen() {
                   : 'text-slate-500 dark:text-slate-400'
               }`}
             >
-              Month
+              {t('calendar.month')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -182,7 +187,7 @@ export default function CalendarScreen() {
                   : 'text-slate-500 dark:text-slate-400'
               }`}
             >
-              List
+              {t('calendar.list')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -216,7 +221,7 @@ export default function CalendarScreen() {
                 className="flex-row items-center"
               >
                 <Text className="text-sm font-medium text-primary-500 dark:text-primary-400 mr-1">
-                  View all
+                  {t('calendar.viewAll')}
                 </Text>
                 <Ionicons
                   name="chevron-forward"
@@ -245,7 +250,7 @@ export default function CalendarScreen() {
                         {item.slot}
                       </Text>
                       <Text className="text-sm font-semibold text-slate-900 dark:text-white">
-                        {item.meal?.name ?? 'Unknown meal'}
+                        {item.meal?.name ?? t('calendar.unknownMeal')}
                       </Text>
                     </View>
                     <Ionicons name="chevron-forward" size={16} color="#94A3B8" />
@@ -260,14 +265,14 @@ export default function CalendarScreen() {
                   color={isDark ? '#334155' : '#CBD5E1'}
                 />
                 <Text className="text-sm text-slate-400 dark:text-slate-500 mt-3">
-                  No meals planned for this day
+                  {t('calendar.noMealsDay')}
                 </Text>
                 <TouchableOpacity
                   onPress={() => router.push(`/day/${selectedDate}`)}
                   className="mt-3"
                 >
                   <Text className="text-sm font-semibold text-primary-500 dark:text-primary-400">
-                    Add meals
+                    {t('calendar.addMeals')}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -280,7 +285,8 @@ export default function CalendarScreen() {
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24 }}
           renderSectionHeader={({ section: { title } }) => {
-            const formatted = new Date(title + 'T12:00:00').toLocaleDateString('en-US', {
+            // Use user's language for locale-aware date formatting
+            const formatted = new Date(title + 'T12:00:00').toLocaleDateString(language, {
               weekday: 'long',
               month: 'long',
               day: 'numeric',
@@ -293,7 +299,7 @@ export default function CalendarScreen() {
                 </Text>
                 {isToday && (
                   <View className="ml-2 px-2 py-0.5 bg-primary-500 dark:bg-primary-400 rounded-full">
-                    <Text className="text-xs font-semibold text-white">Today</Text>
+                    <Text className="text-xs font-semibold text-white">{t('common.today')}</Text>
                   </View>
                 )}
               </View>
@@ -313,7 +319,7 @@ export default function CalendarScreen() {
                   {item.slot}
                 </Text>
                 <Text className="text-sm font-semibold text-slate-900 dark:text-white">
-                  {item.meal?.name ?? 'Unknown meal'}
+                  {item.meal?.name ?? t('calendar.unknownMeal')}
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={16} color="#94A3B8" />
@@ -323,7 +329,7 @@ export default function CalendarScreen() {
             <View className="items-center py-8">
               <Ionicons name="restaurant-outline" size={40} color={isDark ? '#334155' : '#CBD5E1'} />
               <Text className="text-sm text-slate-400 dark:text-slate-500 mt-3">
-                No meals planned this month
+                {t('calendar.noMealsMonth')}
               </Text>
             </View>
           }
