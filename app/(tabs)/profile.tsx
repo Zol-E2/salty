@@ -12,6 +12,7 @@
  *
  * The screen does not allow editing — users tap the settings gear icon to
  * navigate to `app/settings.tsx` for modifications.
+ *
  */
 
 import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
@@ -25,6 +26,12 @@ import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { GOALS, SKILL_LEVELS, DIETARY_OPTIONS } from '../../lib/constants';
 
+/**
+ * Renders the Profile tab with user preferences, a Pro upgrade card, sign-out
+ * button, and (in dev builds only) a Developer Tools card for resetting the
+ * onboarding flow.
+ *
+ */
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, isAuthenticated, signOut } = useAuth();
@@ -36,6 +43,13 @@ export default function ProfileScreen() {
       { text: 'Cancel', style: 'cancel' },
       { text: 'Sign Out', style: 'destructive', onPress: signOut },
     ]);
+  };
+
+  /** DEV ONLY — resets onboarding so the flow can be re-tested without signing out. */
+  const handleRetakeOnboarding = async () => {
+    await onboarding.reset();
+    // FlowGuard watches onboardingComplete reactively and will redirect to
+    // /(onboarding)/welcome automatically once the store update propagates.
   };
 
   // Use Supabase profile if authenticated, otherwise local onboarding data
@@ -143,6 +157,27 @@ export default function ProfileScreen() {
             }
           />
         </View>
+
+        {/* Developer Tools */}
+        <Card className="mb-4 border-rose-400 dark:border-rose-600">
+          <View className="flex-row items-center mb-3">
+            <View className="w-10 h-10 bg-rose-100 dark:bg-rose-400/10 rounded-xl items-center justify-center mr-3">
+              <Ionicons name="construct-outline" size={20} color="#F43F5E" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-base font-semibold text-rose-600 dark:text-rose-400">
+                Developer Tools
+              </Text>
+            </View>
+          </View>
+          <Button
+            title="Retake Onboarding"
+            onPress={handleRetakeOnboarding}
+            variant="outline"
+            size="md"
+            icon={<Ionicons name="refresh-outline" size={18} color="#F43F5E" />}
+          />
+        </Card>
 
         <View className="h-8" />
       </ScrollView>
