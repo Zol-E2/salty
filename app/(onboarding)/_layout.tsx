@@ -1,7 +1,7 @@
 /**
  * @file app/(onboarding)/_layout.tsx
- * Stack navigator for the 6-step onboarding flow (welcome → goals →
- * preferences → paywall → complete). Uses platform-native push animations
+ * Stack navigator for the 6-step onboarding flow (welcome → locale → goals →
+ * preferences → complete → paywall). Uses platform-native push animations
  * consistent with the root stack.
  */
 
@@ -17,6 +17,14 @@ export default function OnboardingLayout() {
         animation: 'default',
         contentStyle: { backgroundColor: 'transparent' },
       }}
-    />
+    >
+      <Stack.Screen name="welcome" />
+      {/* locale is the new step 1 — language and currency selection */}
+      <Stack.Screen name="locale" />
+      <Stack.Screen name="goals" />
+      <Stack.Screen name="preferences" />
+      <Stack.Screen name="complete" />
+      <Stack.Screen name="paywall" />
+    </Stack>
   );
 }

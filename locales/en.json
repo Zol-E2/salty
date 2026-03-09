@@ -1,0 +1,166 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "error": "Error",
+    "continue": "Continue",
+    "save": "Save",
+    "done": "Done",
+    "delete": "Delete",
+    "none": "None",
+    "today": "Today",
+    "version": "Version"
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Welcome to Salty",
+      "subtitle": "Your personal AI meal planner.",
+      "tagline": "Eat better, spend less, stress never.",
+      "hint": "We'll personalize your experience in a few quick steps",
+      "getStarted": "Get Started"
+    },
+    "locale": {
+      "title": "Language & Currency",
+      "subtitle": "Choose how the app looks and talks to you",
+      "languageSection": "Language",
+      "currencySection": "Currency"
+    },
+    "goals": {
+      "title": "What's your main goal?",
+      "subtitle": "This helps us tailor your meal plans",
+      "save_money": "Save Money",
+      "save_money_desc": "Eat well on a tight budget",
+      "eat_healthy": "Eat Healthy",
+      "eat_healthy_desc": "Balanced nutrition & macros",
+      "learn_to_cook": "Learn to Cook",
+      "learn_to_cook_desc": "Build kitchen confidence",
+      "save_time": "Save Time",
+      "save_time_desc": "Quick & easy meals"
+    },
+    "preferences": {
+      "title": "Your preferences",
+      "subtitle": "Help us find the perfect meals for you"
+    },
+    "complete": {
+      "title": "You're all set!",
+      "subtitle": "Here's a summary of your preferences",
+      "goal": "Goal",
+      "budget": "Your budget",
+      "skill": "Skill level",
+      "dietary": "Dietary",
+      "language": "Language",
+      "currency": "Currency",
+      "errorSave": "Failed to save your preferences. Please try again."
+    },
+    "paywall": {
+      "title": "Unlock the full experience",
+      "subtitle": "Choose a plan that fits your budget",
+      "mostPopular": "Most Popular",
+      "forever": "forever"
+    }
+  },
+  "tabs": {
+    "calendar": "Meal Plan",
+    "generate": "AI Generate",
+    "profile": "Profile"
+  },
+  "calendar": {
+    "month": "Month",
+    "list": "List",
+    "viewAll": "View all",
+    "noMealsDay": "No meals planned for this day",
+    "noMealsMonth": "No meals planned this month",
+    "addMeals": "Add meals",
+    "unknownMeal": "Unknown meal"
+  },
+  "generate": {
+    "title": "AI Generate",
+    "titlePreview": "Your Meal Plan",
+    "subtitle": "Tell us what you need and we'll create a plan",
+    "subtitlePreview": "Review your generated meals before saving",
+    "generatingWeek": "Generating week {{current}} of {{total}}...",
+    "generatingMeals": "Generating your meals...",
+    "errorTitle": "Generation Failed",
+    "errorSlowDown": "Slow Down",
+    "errorSave": "Could not save meal plan."
+  },
+  "profile": {
+    "title": "Profile",
+    "notSignedIn": "Not signed in",
+    "preferences": "Preferences",
+    "goal": "Goal",
+    "budget": "Budget",
+    "skill": "Skill",
+    "dietary": "Dietary",
+    "language": "Language",
+    "currency": "Currency",
+    "perWeek": "/week",
+    "proTitle": "Upgrade to Salty Pro",
+    "proSubtitle": "Unlock the full experience",
+    "proFeature1": "Unlimited AI meal plans",
+    "proFeature2": "Detailed macros & nutrition",
+    "proFeature3": "Grocery list export",
+    "proPrice": "$4.99/month",
+    "upgrade": "Upgrade",
+    "upgradeComingSoon": "Coming Soon",
+    "upgradeComingSoonMsg": "Pro subscriptions will be available in a future update.",
+    "signOut": "Sign Out",
+    "signOutConfirmTitle": "Sign Out",
+    "signOutConfirmMsg": "Are you sure you want to sign out?",
+    "devTools": "Developer Tools",
+    "retakeOnboarding": "Retake Onboarding"
+  },
+  "settings": {
+    "title": "Settings",
+    "goal": "Goal",
+    "appearance": "Appearance",
+    "themeSystem": "System",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "saveChanges": "Save Changes",
+    "about": "About",
+    "versionValue": "Salty v1.0.0",
+    "dangerZone": "Danger Zone",
+    "deleteAllPlans": "Delete All Meal Plans",
+    "deleteAllPlansMsg": "This will remove all meals from your calendar. Your saved meal recipes will not be deleted.",
+    "deleteAllPlansSure": "Are you sure?",
+    "deleteAllPlansUndo": "This action cannot be undone.",
+    "deleteAllPlansDone": "All meal plans have been deleted.",
+    "deleteAllPlansError": "Failed to delete meal plans. Please try again.",
+    "deleteAccount": "Delete Account",
+    "deleteAccountMsg": "This will permanently delete your profile, all saved meals, and meal plans.",
+    "deleteAccountSure": "This cannot be undone. Are you absolutely sure?",
+    "deleteAccountSureMsg": "All your data will be permanently removed.",
+    "deleteAccountConfirm": "Delete My Account",
+    "deleteAccountError": "Failed to delete account. Please try again.",
+    "saved": "Saved",
+    "savedMsg": "Your settings have been updated.",
+    "saveError": "Failed to save settings. Please try again.",
+    "languageCurrency": "Language & Currency"
+  },
+  "preferences": {
+    "weeklyBudget": "Weekly grocery budget",
+    "skillLevel": "Cooking skill level",
+    "dietary": "Dietary restrictions",
+    "dietaryHint": "Select all that apply (optional)",
+    "perWeek": "/wk",
+    "beginner": "Beginner",
+    "beginner_desc": "Can boil water & use a microwave",
+    "intermediate": "Intermediate",
+    "intermediate_desc": "Comfortable with basic recipes",
+    "advanced": "Advanced",
+    "advanced_desc": "Love experimenting in the kitchen",
+    "vegan": "Vegan",
+    "vegetarian": "Vegetarian",
+    "gluten_free": "Gluten-Free",
+    "dairy_free": "Dairy-Free",
+    "nut_free": "Nut-Free",
+    "halal": "Halal",
+    "kosher": "Kosher"
+  },
+  "meal": {
+    "breakfast": "Breakfast",
+    "lunch": "Lunch",
+    "dinner": "Dinner",
+    "snack": "Snack"
+  }
+}

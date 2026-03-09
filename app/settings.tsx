@@ -1,7 +1,8 @@
 /**
  * @file app/settings.tsx
  * Settings screen — lets authenticated users update their meal preferences,
- * change the app theme, and access the danger zone (delete plans / account).
+ * change the app theme, choose language and currency, and access the danger
+ * zone (delete plans / account).
  *
  * State initialisation:
  *   Local state is seeded once from the Supabase profile (if authenticated) or
@@ -28,6 +29,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../hooks/useAuth';
 import { useProfile, useUpdateProfile } from '../hooks/useProfile';
 import { useDeleteAllMealPlans } from '../hooks/useMealPlan';
@@ -39,6 +41,8 @@ import { Button } from '../components/ui/Button';
 import { GoalOption } from '../components/onboarding/GoalOption';
 import { PreferencesForm } from '../components/forms/PreferencesForm';
 import { DietaryRestriction, Profile } from '../lib/types';
+import { LANGUAGES, CURRENCIES } from '../lib/constants';
+import { changeLanguage } from '../lib/i18n';
 
 /** Goal options displayed in the Goal card. */
 const GOAL_DATA: {
@@ -47,35 +51,16 @@ const GOAL_DATA: {
   description: string;
   icon: keyof typeof Ionicons.glyphMap;
 }[] = [
-  {
-    key: 'save_money',
-    label: 'Save Money',
-    description: 'Eat well on a tight budget',
-    icon: 'wallet-outline',
-  },
-  {
-    key: 'eat_healthy',
-    label: 'Eat Healthy',
-    description: 'Balanced nutrition & macros',
-    icon: 'heart-outline',
-  },
-  {
-    key: 'learn_to_cook',
-    label: 'Learn to Cook',
-    description: 'Build kitchen confidence',
-    icon: 'flame-outline',
-  },
-  {
-    key: 'save_time',
-    label: 'Save Time',
-    description: 'Quick & easy meals',
-    icon: 'time-outline',
-  },
+  { key: 'save_money', label: 'Save Money', description: 'Eat well on a tight budget', icon: 'wallet-outline' },
+  { key: 'eat_healthy', label: 'Eat Healthy', description: 'Balanced nutrition & macros', icon: 'heart-outline' },
+  { key: 'learn_to_cook', label: 'Learn to Cook', description: 'Build kitchen confidence', icon: 'flame-outline' },
+  { key: 'save_time', label: 'Save Time', description: 'Quick & easy meals', icon: 'time-outline' },
 ];
 
-/** Settings screen — goal, preferences, appearance, danger zone. */
+/** Settings screen — goal, preferences, language/currency, appearance, danger zone. */
 export default function SettingsScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { user, isAuthenticated, signOut } = useAuth();
   const { data: profile, isLoading: profileLoading } = useProfile();
   const updateProfile = useUpdateProfile();
@@ -87,6 +72,8 @@ export default function SettingsScreen() {
   const [weeklyBudget, setWeeklyBudget] = useState(50);
   const [skillLevel, setSkillLevel] = useState('');
   const [dietaryRestrictions, setDietaryRestrictions] = useState<DietaryRestriction[]>([]);
+  const [selectedLanguage, setSelectedLanguage] = useState(onboarding.language);
+  const [selectedCurrency, setSelectedCurrency] = useState(onboarding.currency);
   const [initialized, setInitialized] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -98,13 +85,17 @@ export default function SettingsScreen() {
     setGoal(profile?.goal ?? onboarding.goal);
     setWeeklyBudget(profile?.weekly_budget ?? onboarding.weekly_budget);
     setSkillLevel(profile?.skill_level ?? onboarding.skill_level);
-    setDietaryRestrictions(
-      profile?.dietary_restrictions ?? onboarding.dietary_restrictions
-    );
+    setDietaryRestrictions(profile?.dietary_restrictions ?? onboarding.dietary_restrictions);
+    // Language and currency from profile DB columns or local store
+    setSelectedLanguage((profile as any)?.language ?? onboarding.language ?? 'en');
+    setSelectedCurrency((profile as any)?.currency ?? onboarding.currency ?? 'USD');
     setInitialized(true);
   }, [profile, profileLoading, isAuthenticated, initialized]);
 
-  /** Saves changes to Supabase (if authenticated) and to the local onboarding store. */
+  /**
+   * Saves all settings to Supabase (if authenticated) and to the local
+   * onboarding store. Applies the language change immediately via i18next.
+   */
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -114,18 +105,25 @@ export default function SettingsScreen() {
           weekly_budget: weeklyBudget,
           skill_level: skillLevel as Profile['skill_level'],
           dietary_restrictions: dietaryRestrictions,
-        });
+          language: selectedLanguage,
+          currency: selectedCurrency,
+        } as any);
       }
 
       onboarding.setGoal(goal);
       onboarding.setBudget(weeklyBudget);
       onboarding.setSkillLevel(skillLevel);
       onboarding.setDietaryRestrictions(dietaryRestrictions);
+      onboarding.setLanguage(selectedLanguage);
+      onboarding.setCurrency(selectedCurrency);
       await onboarding.markComplete();
 
-      Alert.alert('Saved', 'Your settings have been updated.');
+      // Apply language immediately so the UI relabels without a restart
+      await changeLanguage(selectedLanguage);
+
+      Alert.alert(t('settings.saved'), t('settings.savedMsg'));
     } catch {
-      Alert.alert('Error', 'Failed to save settings. Please try again.');
+      Alert.alert(t('common.error'), t('settings.saveError'));
     } finally {
       setSaving(false);
     }
@@ -137,28 +135,28 @@ export default function SettingsScreen() {
    */
   const handleDeleteAllMealPlans = () => {
     Alert.alert(
-      'Delete All Meal Plans?',
-      'This will remove all meals from your calendar. Your saved meal recipes will not be deleted.',
+      t('settings.deleteAllPlans'),
+      t('settings.deleteAllPlansMsg'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: () => {
             Alert.alert(
-              'Are you sure?',
-              'This action cannot be undone.',
+              t('settings.deleteAllPlansSure'),
+              t('settings.deleteAllPlansUndo'),
               [
-                { text: 'Cancel', style: 'cancel' },
+                { text: t('common.cancel'), style: 'cancel' },
                 {
-                  text: 'Delete',
+                  text: t('common.delete'),
                   style: 'destructive',
                   onPress: async () => {
                     try {
                       await deleteAllMealPlans.mutateAsync();
-                      Alert.alert('Done', 'All meal plans have been deleted.');
+                      Alert.alert(t('common.done'), t('settings.deleteAllPlansDone'));
                     } catch {
-                      Alert.alert('Error', 'Failed to delete meal plans. Please try again.');
+                      Alert.alert(t('common.error'), t('settings.deleteAllPlansError'));
                     }
                   },
                 },
@@ -177,35 +175,30 @@ export default function SettingsScreen() {
    */
   const handleDeleteAccount = () => {
     Alert.alert(
-      'Delete Account?',
-      'This will permanently delete your profile, all saved meals, and meal plans.',
+      t('settings.deleteAccount'),
+      t('settings.deleteAccountMsg'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: () => {
             Alert.alert(
-              'This cannot be undone. Are you absolutely sure?',
-              'All your data will be permanently removed.',
+              t('settings.deleteAccountSure'),
+              t('settings.deleteAccountSureMsg'),
               [
-                { text: 'Cancel', style: 'cancel' },
+                { text: t('common.cancel'), style: 'cancel' },
                 {
-                  text: 'Delete My Account',
+                  text: t('settings.deleteAccountConfirm'),
                   style: 'destructive',
                   onPress: async () => {
                     try {
                       const userId = user!.id;
-
-                      await supabase
-                        .from('profiles')
-                        .delete()
-                        .eq('id', userId);
-
+                      await supabase.from('profiles').delete().eq('id', userId);
                       await onboarding.reset();
                       await signOut();
                     } catch {
-                      Alert.alert('Error', 'Failed to delete account. Please try again.');
+                      Alert.alert(t('common.error'), t('settings.deleteAccountError'));
                     }
                   },
                 },
@@ -228,7 +221,7 @@ export default function SettingsScreen() {
           <Ionicons name="arrow-back" size={20} color="#64748B" />
         </TouchableOpacity>
         <Text className="text-xl font-bold text-slate-900 dark:text-white">
-          Settings
+          {t('settings.title')}
         </Text>
       </View>
 
@@ -236,7 +229,7 @@ export default function SettingsScreen() {
         {/* --- Goal --- */}
         <Card className="mb-4">
           <Text className="text-base font-semibold text-slate-900 dark:text-white mb-3">
-            Goal
+            {t('settings.goal')}
           </Text>
           {GOAL_DATA.map((g) => (
             <GoalOption
@@ -263,13 +256,78 @@ export default function SettingsScreen() {
                 prev.includes(key) ? prev.filter((r) => r !== key) : [...prev, key]
               )
             }
+            currency={selectedCurrency}
           />
+        </Card>
+
+        {/* --- Language & Currency --- */}
+        <Card className="mb-4">
+          <Text className="text-base font-semibold text-slate-900 dark:text-white mb-3">
+            {t('settings.languageCurrency')}
+          </Text>
+
+          {/* Language chips */}
+          <Text className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+            {t('onboarding.locale.languageSection')}
+          </Text>
+          <View className="flex-row flex-wrap gap-2 mb-4">
+            {LANGUAGES.map((lang) => (
+              <TouchableOpacity
+                key={lang.key}
+                onPress={() => setSelectedLanguage(lang.key)}
+                className={`flex-row items-center px-3 py-2 rounded-xl border-2 ${
+                  selectedLanguage === lang.key
+                    ? 'border-primary-500 bg-primary-50 dark:border-primary-400 dark:bg-primary-400/10'
+                    : 'border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900'
+                }`}
+              >
+                <Text className="text-base mr-1">{lang.flag}</Text>
+                <Text
+                  className={`text-sm font-medium ${
+                    selectedLanguage === lang.key
+                      ? 'text-primary-600 dark:text-primary-400'
+                      : 'text-slate-700 dark:text-slate-300'
+                  }`}
+                >
+                  {lang.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Currency chips */}
+          <Text className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+            {t('onboarding.locale.currencySection')}
+          </Text>
+          <View className="flex-row flex-wrap gap-2">
+            {CURRENCIES.map((curr) => (
+              <TouchableOpacity
+                key={curr.key}
+                onPress={() => setSelectedCurrency(curr.key)}
+                className={`px-4 py-2.5 rounded-xl border-2 ${
+                  selectedCurrency === curr.key
+                    ? 'border-primary-500 bg-primary-50 dark:border-primary-400 dark:bg-primary-400/10'
+                    : 'border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900'
+                }`}
+              >
+                <Text
+                  className={`text-sm font-semibold ${
+                    selectedCurrency === curr.key
+                      ? 'text-primary-600 dark:text-primary-400'
+                      : 'text-slate-700 dark:text-slate-300'
+                  }`}
+                >
+                  {curr.key} {curr.symbol}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </Card>
 
         {/* --- Appearance --- */}
         <Card className="mb-4">
           <Text className="text-base font-semibold text-slate-900 dark:text-white mb-3">
-            Appearance
+            {t('settings.appearance')}
           </Text>
           <View className="flex-row gap-2">
             {(['system', 'light', 'dark'] as const).map((m) => {
@@ -277,6 +335,11 @@ export default function SettingsScreen() {
                 system: 'phone-portrait-outline',
                 light: 'sunny-outline',
                 dark: 'moon-outline',
+              };
+              const themeLabels: Record<string, string> = {
+                system: t('settings.themeSystem'),
+                light: t('settings.themeLight'),
+                dark: t('settings.themeDark'),
               };
               return (
                 <TouchableOpacity
@@ -300,7 +363,7 @@ export default function SettingsScreen() {
                         : 'text-slate-600 dark:text-slate-400'
                     }`}
                   >
-                    {m.charAt(0).toUpperCase() + m.slice(1)}
+                    {themeLabels[m]}
                   </Text>
                 </TouchableOpacity>
               );
@@ -311,7 +374,7 @@ export default function SettingsScreen() {
         {/* --- Save --- */}
         <View className="mb-4">
           <Button
-            title="Save Changes"
+            title={t('settings.saveChanges')}
             onPress={handleSave}
             size="lg"
             loading={saving}
@@ -321,12 +384,12 @@ export default function SettingsScreen() {
         {/* --- About --- */}
         <Card className="mb-4">
           <Text className="text-base font-semibold text-slate-900 dark:text-white mb-3">
-            About
+            {t('settings.about')}
           </Text>
           <SettingsRow
             icon="information-circle-outline"
-            label="Version"
-            value="Salty v1.0.0"
+            label={t('common.version')}
+            value={t('settings.versionValue')}
           />
         </Card>
 
@@ -334,28 +397,24 @@ export default function SettingsScreen() {
         {isAuthenticated && (
           <Card className="mb-4 border-rose-200 dark:border-rose-900">
             <Text className="text-base font-semibold text-rose-600 dark:text-rose-400 mb-3">
-              Danger Zone
+              {t('settings.dangerZone')}
             </Text>
             <View className="mb-3">
               <Button
-                title="Delete All Meal Plans"
+                title={t('settings.deleteAllPlans')}
                 onPress={handleDeleteAllMealPlans}
                 variant="outline"
                 size="md"
-                icon={
-                  <Ionicons name="trash-outline" size={18} color="#E11D48" />
-                }
+                icon={<Ionicons name="trash-outline" size={18} color="#E11D48" />}
                 className="border-rose-300 dark:border-rose-800"
               />
             </View>
             <Button
-              title="Delete Account"
+              title={t('settings.deleteAccount')}
               onPress={handleDeleteAccount}
               variant="outline"
               size="md"
-              icon={
-                <Ionicons name="person-remove-outline" size={18} color="#E11D48" />
-              }
+              icon={<Ionicons name="person-remove-outline" size={18} color="#E11D48" />}
               className="border-rose-300 dark:border-rose-800"
             />
           </Card>
@@ -374,17 +433,18 @@ export default function SettingsScreen() {
 /**
  * SettingsRow renders a single label–value row with a leading icon.
  * Used in the About card.
+ *
+ * @param props.icon - Ionicons glyph name for the leading icon.
+ * @param props.label - Row label displayed on the left.
+ * @param props.value - Row value displayed on the right.
  */
 function SettingsRow({
   icon,
   label,
   value,
 }: {
-  /** Ionicons glyph name for the leading icon. */
   icon: keyof typeof Ionicons.glyphMap;
-  /** Row label displayed on the left. */
   label: string;
-  /** Row value displayed on the right. */
   value: string;
 }) {
   return (

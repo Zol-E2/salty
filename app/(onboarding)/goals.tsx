@@ -47,7 +47,8 @@ export default function GoalsScreen() {
     <SafeAreaView className="flex-1 bg-stone-50 dark:bg-slate-950">
       <View className="flex-1 px-6">
         <View className="pt-8 mb-8">
-          <ProgressDots total={6} current={1} />
+          {/* Step 2 of 6 — locale step was inserted before this one */}
+          <ProgressDots total={6} current={2} />
         </View>
 
         <Text className="text-2xl font-bold text-slate-900 dark:text-white mb-2">

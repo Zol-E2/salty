@@ -89,6 +89,10 @@ const safeIngredientString = z
   .transform((val) => sanitizeForPrompt(val.trim()))
   .pipe(z.string().min(1, 'Ingredient cannot be empty'));
 
+// Supported language and currency codes — must match lib/constants.ts LANGUAGES / CURRENCIES
+const VALID_LANGUAGES = ['en', 'hu', 'de', 'fr', 'es', 'it', 'pt', 'nl', 'el', 'fi'] as const;
+const VALID_CURRENCIES = ['USD', 'EUR', 'GBP', 'HUF'] as const;
+
 export const GenerateMealPlanSchema = z
   .object({
     timeframe: z.enum(VALID_TIMEFRAMES),
@@ -99,6 +103,10 @@ export const GenerateMealPlanSchema = z
     dietary_restrictions: z.array(z.enum(VALID_DIETARY_RESTRICTIONS)).max(7),
     available_ingredients: z.array(safeIngredientString).max(50),
     skill_level: z.enum(VALID_SKILL_LEVELS),
+    // Language and currency are optional for backward compatibility with
+    // existing clients that haven't yet picked up the new schema.
+    language: z.enum(VALID_LANGUAGES).optional().default('en'),
+    currency: z.enum(VALID_CURRENCIES).optional().default('USD'),
   })
   .strict(); // Reject unexpected fields
 

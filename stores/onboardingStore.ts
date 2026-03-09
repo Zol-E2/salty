@@ -4,7 +4,8 @@
  * during the 6-step onboarding flow and reused throughout the app.
  *
  * Data flow:
- *   1. The user sets preferences during onboarding (goal, budget, skill, diet).
+ *   1. The user sets preferences during onboarding (goal, budget, skill, diet,
+ *      language, currency).
  *   2. `markComplete()` persists them to SecureStore and sets `onboardingComplete`.
  *   3. On app launch, `loadOnboardingState()` restores them from SecureStore.
  *   4. If the user is authenticated, `app/(auth)/verify.tsx` syncs this data to
@@ -37,6 +38,9 @@ const storedOnboardingSchema = z.object({
   skill_level: z.string().optional().default(''),
   dietary_restrictions: z.array(z.string()).optional().default([]),
   onboardingComplete: z.boolean().optional().default(false),
+  // Language and currency added in v2 — defaults let old stored records upgrade seamlessly
+  language: z.string().optional().default('en'),
+  currency: z.string().optional().default('USD'),
 });
 
 // ---------------------------------------------------------------------------
@@ -60,6 +64,10 @@ interface OnboardingState {
    * `FlowGuard` waits for this before routing, preventing a flash to onboarding.
    */
   isLoaded: boolean;
+  /** BCP 47 language code chosen during onboarding (e.g. `'en'`, `'hu'`). */
+  language: string;
+  /** ISO 4217 currency code chosen during onboarding (e.g. `'USD'`, `'HUF'`). */
+  currency: string;
 
   // --- Actions ---
 
@@ -80,6 +88,16 @@ interface OnboardingState {
    * @param restrictions - The full replacement array.
    */
   setDietaryRestrictions: (restrictions: DietaryRestriction[]) => void;
+  /**
+   * Sets the UI display language.
+   * @param lang - BCP 47 language code (e.g. `'en'`, `'de'`).
+   */
+  setLanguage: (lang: string) => void;
+  /**
+   * Sets the display currency.
+   * @param currency - ISO 4217 currency code (e.g. `'USD'`, `'HUF'`).
+   */
+  setCurrency: (currency: string) => void;
   /**
    * Persists current preferences to SecureStore and sets `onboardingComplete`.
    * Called when the user reaches the final onboarding step.
@@ -110,10 +128,14 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
   dietary_restrictions: [],
   onboardingComplete: false,
   isLoaded: false,
+  language: 'en',
+  currency: 'USD',
 
   setGoal: (goal) => set({ goal }),
   setBudget: (weekly_budget) => set({ weekly_budget }),
   setSkillLevel: (skill_level) => set({ skill_level }),
+  setLanguage: (language) => set({ language }),
+  setCurrency: (currency) => set({ currency }),
 
   toggleDietaryRestriction: (restriction) =>
     set((state) => ({
@@ -125,13 +147,15 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
   setDietaryRestrictions: (dietary_restrictions) => set({ dietary_restrictions }),
 
   markComplete: async () => {
-    const { goal, weekly_budget, skill_level, dietary_restrictions } = get();
+    const { goal, weekly_budget, skill_level, dietary_restrictions, language, currency } = get();
     const data = JSON.stringify({
       goal,
       weekly_budget,
       skill_level,
       dietary_restrictions,
       onboardingComplete: true,
+      language,
+      currency,
     });
     await SecureStore.setItemAsync(ONBOARDING_KEY, data);
     set({ onboardingComplete: true });
@@ -160,6 +184,8 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
           // Cast is safe: validated values come from the same DietaryRestriction union
           dietary_restrictions: data.dietary_restrictions as DietaryRestriction[],
           onboardingComplete: data.onboardingComplete,
+          language: data.language,
+          currency: data.currency,
           isLoaded: true,
         });
       } else {
@@ -181,6 +207,8 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
       skill_level: '',
       dietary_restrictions: [],
       onboardingComplete: false,
+      language: 'en',
+      currency: 'USD',
     });
   },
 }));

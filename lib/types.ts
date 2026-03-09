@@ -28,6 +28,10 @@ export interface Profile {
   dietary_restrictions: DietaryRestriction[];
   /** True once the user has completed all onboarding steps. */
   onboarding_complete: boolean;
+  /** BCP 47 language code for the UI (e.g. `'en'`, `'hu'`). Defaults to `'en'`. */
+  language: string;
+  /** ISO 4217 currency code for budget display (e.g. `'USD'`, `'HUF'`). Defaults to `'USD'`. */
+  currency: string;
   /** ISO 8601 timestamp — set by the database on insert. */
   created_at: string;
   /** ISO 8601 timestamp — updated automatically by a database trigger. */
@@ -175,6 +179,16 @@ export interface GenerateMealPlanRequest {
   available_ingredients: string[];
   /** User's cooking skill level — affects recipe complexity. */
   skill_level: string;
+  /**
+   * BCP 47 language code (e.g. `'en'`, `'hu'`). Gemini generates meal names,
+   * ingredients, and instructions in this language.
+   */
+  language?: string;
+  /**
+   * ISO 4217 currency code (e.g. `'USD'`, `'HUF'`). Passed to Gemini so the
+   * AI can contextualise cost descriptions in the user's local currency.
+   */
+  currency?: string;
 }
 
 /**

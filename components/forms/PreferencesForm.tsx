@@ -10,12 +10,20 @@
  * This component is purely presentational. All state lives in the parent and
  * flows in via props; changes flow out via callbacks (props-in / callbacks-out).
  * This prevents the budget/skill/dietary UI from being duplicated across screens.
+ *
+ * Currency display:
+ *   Budget chips show amounts in the user's selected display currency. The
+ *   `weeklyBudget` prop and `onBudgetChange` callback still use USD values —
+ *   conversion is display-only, done via `formatAmount` from `lib/currency.ts`.
  */
 
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { DIETARY_OPTIONS, SKILL_LEVELS } from '../../lib/constants';
 import { DietaryRestriction } from '../../lib/types';
+import { useExchangeRateStore } from '../../stores/exchangeRateStore';
+import { formatAmount, FALLBACK_RATES } from '../../lib/currency';
 
 /**
  * The available weekly grocery budget options in USD.
@@ -29,7 +37,7 @@ interface PreferencesFormProps {
   weeklyBudget: number;
   /**
    * Called when the user taps a budget chip.
-   * @param budget - The selected budget amount.
+   * @param budget - The selected budget amount in USD.
    */
   onBudgetChange: (budget: number) => void;
   /** Currently selected cooking skill level key (e.g. `'beginner'`). */
@@ -46,11 +54,17 @@ interface PreferencesFormProps {
    * @param restriction - The restriction key that was tapped.
    */
   onDietaryRestrictionToggle: (restriction: DietaryRestriction) => void;
+  /**
+   * ISO 4217 currency code for displaying budget chip labels.
+   * Defaults to `'USD'` — pass the user's selected currency for localised display.
+   */
+  currency?: string;
 }
 
 /**
  * PreferencesForm renders three preference sections:
- * 1. Budget — a horizontal chip row of dollar amounts from `BUDGET_OPTIONS`.
+ * 1. Budget — a horizontal chip row of amounts from `BUDGET_OPTIONS`, displayed
+ *    in the user's selected currency (converted from USD base values).
  * 2. Skill Level — a vertical list of tappable rows from `SKILL_LEVELS`.
  * 3. Dietary Restrictions — a wrapping chip row from `DIETARY_OPTIONS`.
  *
@@ -66,12 +80,18 @@ export function PreferencesForm({
   onSkillLevelChange,
   dietaryRestrictions,
   onDietaryRestrictionToggle,
+  currency = 'USD',
 }: PreferencesFormProps) {
+  const { t } = useTranslation();
+  // Live exchange rates from the store; fall back to FALLBACK_RATES if not loaded
+  const rates = useExchangeRateStore((s) => s.rates);
+  const effectiveRates = Object.keys(rates).length > 0 ? rates : FALLBACK_RATES;
+
   return (
     <View>
       {/* --- Budget --- */}
       <Text className="text-base font-semibold text-slate-900 dark:text-white mb-3">
-        Weekly grocery budget
+        {t('preferences.weeklyBudget')}
       </Text>
       <View className="flex-row flex-wrap gap-2 mb-8">
         {BUDGET_OPTIONS.map((amount) => (
@@ -91,7 +111,8 @@ export function PreferencesForm({
                   : 'text-slate-700 dark:text-slate-300'
               }`}
             >
-              ${amount}/wk
+              {/* Display converted amount; selection comparison uses USD values */}
+              {formatAmount(amount, currency, effectiveRates)}{t('preferences.perWeek')}
             </Text>
           </TouchableOpacity>
         ))}
@@ -99,7 +120,7 @@ export function PreferencesForm({
 
       {/* --- Skill Level --- */}
       <Text className="text-base font-semibold text-slate-900 dark:text-white mb-3">
-        Cooking skill level
+        {t('preferences.skillLevel')}
       </Text>
       <View className="mb-8">
         {SKILL_LEVELS.map((level) => (
@@ -120,10 +141,10 @@ export function PreferencesForm({
                     : 'text-slate-900 dark:text-white'
                 }`}
               >
-                {level.label}
+                {t(`preferences.${level.key}`)}
               </Text>
               <Text className="text-sm text-slate-500 dark:text-slate-400">
-                {level.description}
+                {t(`preferences.${level.key}_desc`)}
               </Text>
             </View>
             {skillLevel === level.key && (
@@ -135,10 +156,10 @@ export function PreferencesForm({
 
       {/* --- Dietary Restrictions --- */}
       <Text className="text-base font-semibold text-slate-900 dark:text-white mb-3">
-        Dietary restrictions
+        {t('preferences.dietary')}
       </Text>
       <Text className="text-sm text-slate-500 dark:text-slate-400 mb-3">
-        Select all that apply (optional)
+        {t('preferences.dietaryHint')}
       </Text>
       <View className="flex-row flex-wrap gap-2 mb-8">
         {DIETARY_OPTIONS.map((option) => {
@@ -160,7 +181,7 @@ export function PreferencesForm({
                     : 'text-slate-700 dark:text-slate-300'
                 }`}
               >
-                {option.label}
+                {t(`preferences.${option.key}`)}
               </Text>
             </TouchableOpacity>
           );

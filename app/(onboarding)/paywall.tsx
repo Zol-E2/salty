@@ -58,7 +58,8 @@ export default function PaywallScreen() {
     <SafeAreaView className="flex-1 bg-stone-50 dark:bg-slate-950">
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className="px-6 pt-8">
-          <ProgressDots total={6} current={4} />
+          {/* Step 5 of 6 — locale step inserted before goals */}
+          <ProgressDots total={6} current={5} />
         </View>
 
         <View className="px-6 pt-8 pb-4 items-center">

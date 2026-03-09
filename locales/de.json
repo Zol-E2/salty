@@ -1,0 +1,166 @@
+{
+  "common": {
+    "cancel": "Abbrechen",
+    "error": "Fehler",
+    "continue": "Weiter",
+    "save": "Speichern",
+    "done": "Fertig",
+    "delete": "Löschen",
+    "none": "Keine",
+    "today": "Heute",
+    "version": "Version"
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Willkommen bei Salty",
+      "subtitle": "Dein persönlicher KI-Mahlzeitenplaner.",
+      "tagline": "Besser essen, weniger ausgeben, kein Stress.",
+      "hint": "Wir personalisieren dein Erlebnis in wenigen Schritten",
+      "getStarted": "Loslegen"
+    },
+    "locale": {
+      "title": "Sprache & Währung",
+      "subtitle": "Wähle, wie die App aussieht und mit dir spricht",
+      "languageSection": "Sprache",
+      "currencySection": "Währung"
+    },
+    "goals": {
+      "title": "Was ist dein Hauptziel?",
+      "subtitle": "Das hilft uns, deine Mahlzeitenpläne anzupassen",
+      "save_money": "Geld sparen",
+      "save_money_desc": "Gut essen mit kleinem Budget",
+      "eat_healthy": "Gesund essen",
+      "eat_healthy_desc": "Ausgewogene Ernährung & Makros",
+      "learn_to_cook": "Kochen lernen",
+      "learn_to_cook_desc": "Küchenkompetenz aufbauen",
+      "save_time": "Zeit sparen",
+      "save_time_desc": "Schnelle & einfache Mahlzeiten"
+    },
+    "preferences": {
+      "title": "Deine Präferenzen",
+      "subtitle": "Hilf uns, die perfekten Mahlzeiten für dich zu finden"
+    },
+    "complete": {
+      "title": "Alles fertig!",
+      "subtitle": "Zusammenfassung deiner Präferenzen",
+      "goal": "Ziel",
+      "budget": "Dein Budget",
+      "skill": "Kochlevel",
+      "dietary": "Ernährung",
+      "language": "Sprache",
+      "currency": "Währung",
+      "errorSave": "Einstellungen konnten nicht gespeichert werden. Bitte versuche es erneut."
+    },
+    "paywall": {
+      "title": "Volle Erfahrung freischalten",
+      "subtitle": "Wähle einen Plan passend zu deinem Budget",
+      "mostPopular": "Beliebteste Wahl",
+      "forever": "für immer"
+    }
+  },
+  "tabs": {
+    "calendar": "Mahlzeitenplan",
+    "generate": "KI Generieren",
+    "profile": "Profil"
+  },
+  "calendar": {
+    "month": "Monat",
+    "list": "Liste",
+    "viewAll": "Alle anzeigen",
+    "noMealsDay": "Keine Mahlzeiten für diesen Tag geplant",
+    "noMealsMonth": "Keine Mahlzeiten für diesen Monat geplant",
+    "addMeals": "Mahlzeiten hinzufügen",
+    "unknownMeal": "Unbekannte Mahlzeit"
+  },
+  "generate": {
+    "title": "KI Generieren",
+    "titlePreview": "Dein Mahlzeitenplan",
+    "subtitle": "Sag uns, was du brauchst, und wir erstellen einen Plan",
+    "subtitlePreview": "Überprüfe deine generierten Mahlzeiten vor dem Speichern",
+    "generatingWeek": "Woche {{current}} von {{total}} wird generiert...",
+    "generatingMeals": "Deine Mahlzeiten werden generiert...",
+    "errorTitle": "Generierung fehlgeschlagen",
+    "errorSlowDown": "Langsamer",
+    "errorSave": "Mahlzeitenplan konnte nicht gespeichert werden."
+  },
+  "profile": {
+    "title": "Profil",
+    "notSignedIn": "Nicht angemeldet",
+    "preferences": "Präferenzen",
+    "goal": "Ziel",
+    "budget": "Budget",
+    "skill": "Level",
+    "dietary": "Ernährung",
+    "language": "Sprache",
+    "currency": "Währung",
+    "perWeek": "/Woche",
+    "proTitle": "Upgrade auf Salty Pro",
+    "proSubtitle": "Volle Erfahrung freischalten",
+    "proFeature1": "Unbegrenzte KI-Mahlzeitenpläne",
+    "proFeature2": "Detaillierte Makros & Ernährung",
+    "proFeature3": "Einkaufsliste exportieren",
+    "proPrice": "$4,99/Monat",
+    "upgrade": "Upgrade",
+    "upgradeComingSoon": "Demnächst",
+    "upgradeComingSoonMsg": "Pro-Abonnements werden in einem zukünftigen Update verfügbar sein.",
+    "signOut": "Abmelden",
+    "signOutConfirmTitle": "Abmelden",
+    "signOutConfirmMsg": "Möchtest du dich wirklich abmelden?",
+    "devTools": "Entwicklertools",
+    "retakeOnboarding": "Einführung wiederholen"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "goal": "Ziel",
+    "appearance": "Erscheinungsbild",
+    "themeSystem": "System",
+    "themeLight": "Hell",
+    "themeDark": "Dunkel",
+    "saveChanges": "Änderungen speichern",
+    "about": "Über",
+    "versionValue": "Salty v1.0.0",
+    "dangerZone": "Gefahrenzone",
+    "deleteAllPlans": "Alle Mahlzeitenpläne löschen",
+    "deleteAllPlansMsg": "Dies entfernt alle Mahlzeiten aus deinem Kalender. Deine gespeicherten Rezepte werden nicht gelöscht.",
+    "deleteAllPlansSure": "Bist du sicher?",
+    "deleteAllPlansUndo": "Diese Aktion kann nicht rückgängig gemacht werden.",
+    "deleteAllPlansDone": "Alle Mahlzeitenpläne wurden gelöscht.",
+    "deleteAllPlansError": "Mahlzeitenpläne konnten nicht gelöscht werden. Bitte versuche es erneut.",
+    "deleteAccount": "Konto löschen",
+    "deleteAccountMsg": "Dies löscht dauerhaft dein Profil, alle gespeicherten Mahlzeiten und Pläne.",
+    "deleteAccountSure": "Das kann nicht rückgängig gemacht werden. Bist du absolut sicher?",
+    "deleteAccountSureMsg": "Alle deine Daten werden dauerhaft entfernt.",
+    "deleteAccountConfirm": "Mein Konto löschen",
+    "deleteAccountError": "Konto konnte nicht gelöscht werden. Bitte versuche es erneut.",
+    "saved": "Gespeichert",
+    "savedMsg": "Deine Einstellungen wurden aktualisiert.",
+    "saveError": "Einstellungen konnten nicht gespeichert werden. Bitte versuche es erneut.",
+    "languageCurrency": "Sprache & Währung"
+  },
+  "preferences": {
+    "weeklyBudget": "Wöchentliches Lebensmittelbudget",
+    "skillLevel": "Kochfertigkeitslevel",
+    "dietary": "Ernährungseinschränkungen",
+    "dietaryHint": "Alles Zutreffende auswählen (optional)",
+    "perWeek": "/Wo",
+    "beginner": "Anfänger",
+    "beginner_desc": "Kann Wasser kochen und eine Mikrowelle benutzen",
+    "intermediate": "Fortgeschritten",
+    "intermediate_desc": "Vertraut mit einfachen Rezepten",
+    "advanced": "Experte",
+    "advanced_desc": "Experimentiere gerne in der Küche",
+    "vegan": "Vegan",
+    "vegetarian": "Vegetarisch",
+    "gluten_free": "Glutenfrei",
+    "dairy_free": "Milchfrei",
+    "nut_free": "Nussfrei",
+    "halal": "Halal",
+    "kosher": "Koscher"
+  },
+  "meal": {
+    "breakfast": "Frühstück",
+    "lunch": "Mittagessen",
+    "dinner": "Abendessen",
+    "snack": "Snack"
+  }
+}

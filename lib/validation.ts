@@ -161,6 +161,10 @@ const safeIngredientString = z
   .transform((val) => sanitizeForPrompt(val.trim()))
   .pipe(z.string().min(1, 'Ingredient cannot be empty'));
 
+// Valid language and currency codes — must stay in sync with LANGUAGES / CURRENCIES in lib/constants.ts
+const VALID_LANGUAGES = ['en', 'hu', 'de', 'fr', 'es', 'it', 'pt', 'nl', 'el', 'fi'] as const;
+const VALID_CURRENCIES = ['USD', 'EUR', 'GBP', 'HUF'] as const;
+
 /** Validates the full meal generation request before sending to the edge function. */
 export const generateMealPlanSchema = z.object({
   timeframe: z.enum(VALID_TIMEFRAMES),
@@ -178,6 +182,9 @@ export const generateMealPlanSchema = z.object({
   dietary_restrictions: z.array(z.enum(VALID_DIETARY)).max(7),
   available_ingredients: z.array(safeIngredientString).max(50),
   skill_level: z.enum(VALID_SKILL_LEVELS),
+  // Optional — defaults handled server-side for backward compatibility
+  language: z.enum(VALID_LANGUAGES).optional(),
+  currency: z.enum(VALID_CURRENCIES).optional(),
 });
 
 // ---------------------------------------------------------------------------
@@ -197,6 +204,8 @@ export const profileUpdateSchema = z
     skill_level: z.enum(VALID_SKILL_LEVELS).optional(),
     dietary_restrictions: z.array(z.enum(VALID_DIETARY)).max(7).optional(),
     onboarding_complete: z.boolean().optional(),
+    language: z.enum(VALID_LANGUAGES).optional(),
+    currency: z.enum(VALID_CURRENCIES).optional(),
   })
   .strict();
 

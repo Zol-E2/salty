@@ -6,6 +6,7 @@ import { Button } from '../ui/Button';
 import { GenerateMealPlanRequest, DietaryRestriction } from '../../lib/types';
 import { DIETARY_OPTIONS } from '../../lib/constants';
 import { useProfile } from '../../hooks/useProfile';
+import { useOnboardingStore } from '../../stores/onboardingStore';
 import { generateMealPlanSchema } from '../../lib/validation';
 
 interface GenerateFormProps {
@@ -121,6 +122,8 @@ function DietaryChip({
 
 export function GenerateForm({ onSubmit, loading }: GenerateFormProps) {
   const { data: profile } = useProfile();
+  // Pull language and currency from store so generated recipes match the user's locale
+  const { language, currency } = useOnboardingStore();
 
   const [timeframe, setTimeframe] = useState<'day' | 'week' | 'month'>('week');
   const [budget, setBudget] = useState(profile?.weekly_budget?.toString() ?? '50');
@@ -145,6 +148,9 @@ export function GenerateForm({ onSubmit, loading }: GenerateFormProps) {
         .map((s) => s.trim())
         .filter(Boolean),
       skill_level: profile?.skill_level ?? 'beginner',
+      // Pass locale so Gemini generates recipes in the user's language/currency
+      language: language || 'en',
+      currency: currency || 'USD',
     };
 
     // Validate all inputs (ranges, types, prompt injection on ingredients)

@@ -12,11 +12,13 @@ import { View, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../../components/ui/Button';
 import { ProgressDots } from '../../components/onboarding/ProgressDots';
 
 export default function WelcomeScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   return (
     <SafeAreaView className="flex-1 bg-stone-50 dark:bg-slate-950">
@@ -31,12 +33,12 @@ export default function WelcomeScreen() {
           </View>
 
           <Text className="text-3xl font-bold text-slate-900 dark:text-white text-center mb-3">
-            Welcome to Salty
+            {t('onboarding.welcome.title')}
           </Text>
 
           <Text className="text-lg text-slate-500 dark:text-slate-400 text-center leading-7 mb-2">
-            Your personal AI meal planner.{'\n'}
-            Eat better, spend less, stress never.
+            {t('onboarding.welcome.subtitle')}{'\n'}
+            {t('onboarding.welcome.tagline')}
           </Text>
         </View>
 
@@ -44,13 +46,14 @@ export default function WelcomeScreen() {
           <View className="flex-row items-center bg-primary-50 dark:bg-primary-400/10 rounded-2xl p-4 mb-6">
             <Ionicons name="sparkles" size={20} color="#10B981" />
             <Text className="text-sm text-primary-700 dark:text-primary-300 ml-3 flex-1">
-              We'll personalize your experience in a few quick steps
+              {t('onboarding.welcome.hint')}
             </Text>
           </View>
 
+          {/* Navigate to locale step first so the rest of onboarding uses the chosen language */}
           <Button
-            title="Get Started"
-            onPress={() => router.push('/(onboarding)/goals')}
+            title={t('onboarding.welcome.getStarted')}
+            onPress={() => router.push('/(onboarding)/locale')}
             size="lg"
           />
         </View>

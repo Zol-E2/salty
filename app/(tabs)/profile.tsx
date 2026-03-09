@@ -12,36 +12,39 @@
  *
  * The screen does not allow editing — users tap the settings gear icon to
  * navigate to `app/settings.tsx` for modifications.
- *
  */
 
 import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
 import { useProfile } from '../../hooks/useProfile';
 import { useOnboardingStore } from '../../stores/onboardingStore';
+import { useExchangeRateStore } from '../../stores/exchangeRateStore';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
-import { GOALS, SKILL_LEVELS, DIETARY_OPTIONS } from '../../lib/constants';
+import { GOALS, SKILL_LEVELS, DIETARY_OPTIONS, LANGUAGES, CURRENCIES } from '../../lib/constants';
+import { formatAmount } from '../../lib/currency';
 
 /**
  * Renders the Profile tab with user preferences, a Pro upgrade card, sign-out
  * button, and (in dev builds only) a Developer Tools card for resetting the
  * onboarding flow.
- *
  */
 export default function ProfileScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { user, isAuthenticated, signOut } = useAuth();
   const { data: profile } = useProfile();
   const onboarding = useOnboardingStore();
+  const { rates } = useExchangeRateStore();
 
   const handleSignOut = () => {
-    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Sign Out', style: 'destructive', onPress: signOut },
+    Alert.alert(t('profile.signOutConfirmTitle'), t('profile.signOutConfirmMsg'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('profile.signOut'), style: 'destructive', onPress: signOut },
     ]);
   };
 
@@ -63,8 +66,17 @@ export default function ProfileScreen() {
   const dietaryLabels =
     restrictions
       ?.map((r) => DIETARY_OPTIONS.find((d) => d.key === r)?.label ?? r)
-      .join(', ') || 'None';
+      .join(', ') || t('common.none');
   const budget = profile?.weekly_budget ?? onboarding.weekly_budget;
+
+  // Resolve language and currency from profile (DB) or onboarding store
+  const activeCurrency = (profile as any)?.currency ?? onboarding.currency ?? 'USD';
+  const activeLanguage = (profile as any)?.language ?? onboarding.language ?? 'en';
+  const languageLabel = LANGUAGES.find((l) => l.key === activeLanguage)?.label ?? activeLanguage;
+  const currencyLabel = CURRENCIES.find((c) => c.key === activeCurrency)?.key ?? activeCurrency;
+
+  // Format budget in the user's selected display currency
+  const budgetDisplay = `${formatAmount(budget, activeCurrency, rates)}${t('profile.perWeek')}`;
 
   return (
     <SafeAreaView edges={['top', 'left', 'right']} className="flex-1 bg-stone-50 dark:bg-slate-950">
@@ -72,10 +84,10 @@ export default function ProfileScreen() {
         <View className="pt-4 pb-6 flex-row items-start justify-between">
           <View>
             <Text className="text-2xl font-bold text-slate-900 dark:text-white mb-1">
-              Profile
+              {t('profile.title')}
             </Text>
             <Text className="text-sm text-slate-500 dark:text-slate-400">
-              {isAuthenticated ? user?.email : 'Not signed in'}
+              {isAuthenticated ? user?.email : t('profile.notSignedIn')}
             </Text>
           </View>
           <TouchableOpacity
@@ -89,19 +101,17 @@ export default function ProfileScreen() {
         {/* Preferences */}
         <Card className="mb-4">
           <Text className="text-base font-semibold text-slate-900 dark:text-white mb-3">
-            Preferences
+            {t('profile.preferences')}
           </Text>
-          <ProfileRow icon="flag-outline" label="Goal" value={goalLabel} />
+          <ProfileRow icon="flag-outline" label={t('profile.goal')} value={goalLabel} />
+          <ProfileRow icon="wallet-outline" label={t('profile.budget')} value={budgetDisplay} />
+          <ProfileRow icon="flame-outline" label={t('profile.skill')} value={skillLabel} />
+          <ProfileRow icon="leaf-outline" label={t('profile.dietary')} value={dietaryLabels} />
+          <ProfileRow icon="language-outline" label={t('profile.language')} value={languageLabel} />
           <ProfileRow
-            icon="wallet-outline"
-            label="Budget"
-            value={`$${budget}/week`}
-          />
-          <ProfileRow icon="flame-outline" label="Skill" value={skillLabel} />
-          <ProfileRow
-            icon="leaf-outline"
-            label="Dietary"
-            value={dietaryLabels}
+            icon="cash-outline"
+            label={t('profile.currency')}
+            value={currencyLabel}
             isLast
           />
         </Card>
@@ -114,31 +124,28 @@ export default function ProfileScreen() {
             </View>
             <View className="flex-1">
               <Text className="text-base font-semibold text-slate-900 dark:text-white">
-                Upgrade to Salty Pro
+                {t('profile.proTitle')}
               </Text>
               <Text className="text-sm text-slate-500 dark:text-slate-400">
-                Unlock the full experience
+                {t('profile.proSubtitle')}
               </Text>
             </View>
           </View>
 
           <View className="mb-4">
-            <ProFeature label="Unlimited AI meal plans" />
-            <ProFeature label="Detailed macros & nutrition" />
-            <ProFeature label="Grocery list export" />
+            <ProFeature label={t('profile.proFeature1')} />
+            <ProFeature label={t('profile.proFeature2')} />
+            <ProFeature label={t('profile.proFeature3')} />
           </View>
 
           <Text className="text-center text-sm text-slate-500 dark:text-slate-400 mb-3">
-            $4.99/month
+            {t('profile.proPrice')}
           </Text>
 
           <Button
-            title="Upgrade"
+            title={t('profile.upgrade')}
             onPress={() =>
-              Alert.alert(
-                'Coming Soon',
-                'Pro subscriptions will be available in a future update.'
-              )
+              Alert.alert(t('profile.upgradeComingSoon'), t('profile.upgradeComingSoonMsg'))
             }
             size="md"
             icon={<Ionicons name="star" size={18} color="white" />}
@@ -148,13 +155,11 @@ export default function ProfileScreen() {
         {/* Sign out */}
         <View className="mt-4 mb-8">
           <Button
-            title="Sign Out"
+            title={t('profile.signOut')}
             onPress={handleSignOut}
             variant="outline"
             size="md"
-            icon={
-              <Ionicons name="log-out-outline" size={18} color="#10B981" />
-            }
+            icon={<Ionicons name="log-out-outline" size={18} color="#10B981" />}
           />
         </View>
 
@@ -166,12 +171,12 @@ export default function ProfileScreen() {
             </View>
             <View className="flex-1">
               <Text className="text-base font-semibold text-rose-600 dark:text-rose-400">
-                Developer Tools
+                {t('profile.devTools')}
               </Text>
             </View>
           </View>
           <Button
-            title="Retake Onboarding"
+            title={t('profile.retakeOnboarding')}
             onPress={handleRetakeOnboarding}
             variant="outline"
             size="md"
@@ -185,6 +190,15 @@ export default function ProfileScreen() {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Private components
+// ---------------------------------------------------------------------------
+
+/**
+ * ProFeature renders a single checkmarked feature row inside the Pro upgrade card.
+ *
+ * @param props.label - Feature description text.
+ */
 function ProFeature({ label }: { label: string }) {
   return (
     <View className="flex-row items-center mb-2">
@@ -196,6 +210,15 @@ function ProFeature({ label }: { label: string }) {
   );
 }
 
+/**
+ * ProfileRow renders a single label–value row with a leading icon.
+ * Used in the Preferences card.
+ *
+ * @param props.icon - Ionicons glyph name.
+ * @param props.label - Short label on the left side.
+ * @param props.value - Value text on the right side.
+ * @param props.isLast - When true, suppresses the bottom divider line.
+ */
 function ProfileRow({
   icon,
   label,
@@ -214,7 +237,7 @@ function ProfileRow({
       }`}
     >
       <Ionicons name={icon} size={18} color="#64748B" />
-      <Text className="text-sm text-slate-500 dark:text-slate-400 ml-3 w-16">
+      <Text className="text-sm text-slate-500 dark:text-slate-400 ml-3 w-20">
         {label}
       </Text>
       <Text className="text-sm font-medium text-slate-900 dark:text-white flex-1">

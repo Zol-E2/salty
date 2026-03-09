@@ -1,0 +1,166 @@
+{
+  "common": {
+    "cancel": "Mégse",
+    "error": "Hiba",
+    "continue": "Tovább",
+    "save": "Mentés",
+    "done": "Kész",
+    "delete": "Törlés",
+    "none": "Nincs",
+    "today": "Ma",
+    "version": "Verzió"
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Üdvözöl a Salty",
+      "subtitle": "A személyes AI ételterveződ.",
+      "tagline": "Egyél jobban, költs kevesebbet, stressz nélkül.",
+      "hint": "Néhány gyors lépésben személyre szabjuk az élményed",
+      "getStarted": "Kezdjük el"
+    },
+    "locale": {
+      "title": "Nyelv és pénznem",
+      "subtitle": "Válaszd meg, hogyan nézzen ki és szóljon hozzád az alkalmazás",
+      "languageSection": "Nyelv",
+      "currencySection": "Pénznem"
+    },
+    "goals": {
+      "title": "Mi a fő célod?",
+      "subtitle": "Ez segít személyre szabni az étrendterveket",
+      "save_money": "Pénzt takarítok meg",
+      "save_money_desc": "Jól egyél szűkös büdzséből",
+      "eat_healthy": "Egészségesen eszem",
+      "eat_healthy_desc": "Kiegyensúlyozott táplálkozás és makrók",
+      "learn_to_cook": "Megtanulok főzni",
+      "learn_to_cook_desc": "Konyhai önbizalom növelése",
+      "save_time": "Időt takarítok meg",
+      "save_time_desc": "Gyors és egyszerű ételek"
+    },
+    "preferences": {
+      "title": "Preferenciáid",
+      "subtitle": "Segíts megtalálni a számodra tökéletes ételeket"
+    },
+    "complete": {
+      "title": "Minden kész!",
+      "subtitle": "Az preferenciáid összefoglalója",
+      "goal": "Cél",
+      "budget": "Büdzséd",
+      "skill": "Szint",
+      "dietary": "Étkezési",
+      "language": "Nyelv",
+      "currency": "Pénznem",
+      "errorSave": "Nem sikerült menteni a beállításokat. Kérjük, próbáld újra."
+    },
+    "paywall": {
+      "title": "Oldja fel a teljes élményt",
+      "subtitle": "Válassz egy büdzsédhez illő csomagot",
+      "mostPopular": "Legtöbbet választott",
+      "forever": "örökre"
+    }
+  },
+  "tabs": {
+    "calendar": "Étrendterv",
+    "generate": "AI Generálás",
+    "profile": "Profil"
+  },
+  "calendar": {
+    "month": "Hónap",
+    "list": "Lista",
+    "viewAll": "Összes megtekintése",
+    "noMealsDay": "Erre a napra nincs tervezett étkezés",
+    "noMealsMonth": "Erre a hónapra nincs tervezett étkezés",
+    "addMeals": "Étkezések hozzáadása",
+    "unknownMeal": "Ismeretlen étkezés"
+  },
+  "generate": {
+    "title": "AI Generálás",
+    "titlePreview": "Az étrendterved",
+    "subtitle": "Mondd el, mire van szükséged, és mi elkészítjük a tervet",
+    "subtitlePreview": "Tekintsd át a generált ételeket mentés előtt",
+    "generatingWeek": "{{current}}. hét generálása {{total}}-ből...",
+    "generatingMeals": "Az ételeid generálása...",
+    "errorTitle": "Generálás sikertelen",
+    "errorSlowDown": "Lassíts egy kicsit",
+    "errorSave": "Nem sikerült menteni az étrendtervet."
+  },
+  "profile": {
+    "title": "Profil",
+    "notSignedIn": "Nincs bejelentkezve",
+    "preferences": "Beállítások",
+    "goal": "Cél",
+    "budget": "Büdzsé",
+    "skill": "Szint",
+    "dietary": "Étkezési",
+    "language": "Nyelv",
+    "currency": "Pénznem",
+    "perWeek": "/hét",
+    "proTitle": "Váltás Salty Pro-ra",
+    "proSubtitle": "Oldja fel a teljes élményt",
+    "proFeature1": "Korlátlan AI étrendtervek",
+    "proFeature2": "Részletes makrók és táplálkozás",
+    "proFeature3": "Bevásárlólista exportálás",
+    "proPrice": "$4.99/hó",
+    "upgrade": "Frissítés",
+    "upgradeComingSoon": "Hamarosan",
+    "upgradeComingSoonMsg": "A Pro előfizetések egy jövőbeli frissítésben lesznek elérhetők.",
+    "signOut": "Kijelentkezés",
+    "signOutConfirmTitle": "Kijelentkezés",
+    "signOutConfirmMsg": "Biztosan ki akarsz jelentkezni?",
+    "devTools": "Fejlesztői eszközök",
+    "retakeOnboarding": "Bemutató újraindítása"
+  },
+  "settings": {
+    "title": "Beállítások",
+    "goal": "Cél",
+    "appearance": "Megjelenés",
+    "themeSystem": "Rendszer",
+    "themeLight": "Világos",
+    "themeDark": "Sötét",
+    "saveChanges": "Változtatások mentése",
+    "about": "Névjegy",
+    "versionValue": "Salty v1.0.0",
+    "dangerZone": "Veszélyzóna",
+    "deleteAllPlans": "Összes étrendterv törlése",
+    "deleteAllPlansMsg": "Ez eltávolítja az összes étkezést a naptáradból. A mentett receptek nem törlődnek.",
+    "deleteAllPlansSure": "Biztos vagy benne?",
+    "deleteAllPlansUndo": "Ez a művelet nem vonható vissza.",
+    "deleteAllPlansDone": "Az összes étrendterv törölve.",
+    "deleteAllPlansError": "Nem sikerült törölni az étrendterveket. Kérjük, próbáld újra.",
+    "deleteAccount": "Fiók törlése",
+    "deleteAccountMsg": "Ez véglegesen törli a profilodat, az összes mentett ételt és étrendtervet.",
+    "deleteAccountSure": "Ez nem vonható vissza. Teljesen biztos vagy?",
+    "deleteAccountSureMsg": "Az összes adatod véglegesen eltávolításra kerül.",
+    "deleteAccountConfirm": "Fiókom törlése",
+    "deleteAccountError": "Nem sikerült törölni a fiókot. Kérjük, próbáld újra.",
+    "saved": "Mentve",
+    "savedMsg": "A beállításaid frissítve lettek.",
+    "saveError": "Nem sikerült menteni a beállításokat. Kérjük, próbáld újra.",
+    "languageCurrency": "Nyelv és pénznem"
+  },
+  "preferences": {
+    "weeklyBudget": "Heti élelmiszerbüdzsé",
+    "skillLevel": "Főzési szint",
+    "dietary": "Étkezési korlátozások",
+    "dietaryHint": "Válaszd ki az összes megfelelőt (nem kötelező)",
+    "perWeek": "/hét",
+    "beginner": "Kezdő",
+    "beginner_desc": "Tudok vizet forralni és mikrót használni",
+    "intermediate": "Középhaladó",
+    "intermediate_desc": "Kényelmes az alapreceptekkel",
+    "advanced": "Haladó",
+    "advanced_desc": "Szeretek kísérletezni a konyhában",
+    "vegan": "Vegán",
+    "vegetarian": "Vegetáriánus",
+    "gluten_free": "Gluténmentes",
+    "dairy_free": "Tejtermékmentes",
+    "nut_free": "Diómentes",
+    "halal": "Halal",
+    "kosher": "Kóser"
+  },
+  "meal": {
+    "breakfast": "Reggeli",
+    "lunch": "Ebéd",
+    "dinner": "Vacsora",
+    "snack": "Snack"
+  }
+}
