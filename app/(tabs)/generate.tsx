@@ -25,8 +25,8 @@
 import { useState } from 'react';
 import { View, Text, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTabControl } from '../../hooks/useTabControl';
 import { SaltShakerLoader } from '../../components/ui/SaltShakerLoader';
 import { GenerateForm } from '../../components/generate/GenerateForm';
 import { GeneratePreview } from '../../components/generate/GeneratePreview';
@@ -37,7 +37,7 @@ import { GenerateMealPlanRequest, GeneratedMeal, MealSlotType } from '../../lib/
 import { useQueryClient } from '@tanstack/react-query';
 
 export default function GenerateScreen() {
-  const router = useRouter();
+  const { setPage } = useTabControl();
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -132,7 +132,9 @@ export default function GenerateScreen() {
       queryClient.invalidateQueries({ queryKey: ['meal-plan-day'] });
 
       setGeneratedMeals(null);
-      router.push('/(tabs)/calendar');
+      // Switch to Calendar tab (index 0) via context — router.navigate does not
+      // work here because this layout bypasses Expo Router's <Tabs> component.
+      setPage(0);
     } catch (error: any) {
       Alert.alert('Save Failed', error.message || 'Could not save meal plan.');
     } finally {
@@ -151,7 +153,7 @@ export default function GenerateScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-stone-50 dark:bg-slate-950">
+    <SafeAreaView edges={['top', 'left', 'right']} className="flex-1 bg-stone-50 dark:bg-slate-950">
       <View className="px-5 pt-4 pb-2">
         <View className="flex-row items-center mb-1">
           <Ionicons name="sparkles" size={22} color="#10B981" />

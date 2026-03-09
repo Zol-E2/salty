@@ -78,8 +78,11 @@ function FlowGuard() {
     <Stack
       screenOptions={{
         headerShown: false,
-        animation: 'slide_from_right',
-        animationDuration: 250,
+        // Platform-native push animation: UIKit spring on iOS, Material
+        // shared-axis slide on Android. Users immediately recognise it as
+        // "standard navigation" — more harmonious than animation: 'none'.
+        // Modal screens override this with slide_from_bottom below.
+        animation: 'default',
         gestureEnabled: true,
         gestureDirection: 'horizontal',
         fullScreenGestureEnabled: true,
@@ -92,6 +95,8 @@ function FlowGuard() {
         name="meal/[id]"
         options={{
           presentation: 'modal',
+          // Modal screens keep a slide_from_bottom animation for a clear
+          // visual distinction between push navigation and modal overlays.
           animation: 'slide_from_bottom',
           animationDuration: 300,
           gestureDirection: 'vertical',
@@ -107,13 +112,8 @@ function FlowGuard() {
           gestureDirection: 'vertical',
         }}
       />
-      <Stack.Screen
-        name="day/[date]"
-        options={{
-          animation: 'slide_from_right',
-          animationDuration: 250,
-        }}
-      />
+      {/* day/[date] inherits the default push animation from screenOptions. */}
+      <Stack.Screen name="day/[date]" />
     </Stack>
   );
 }

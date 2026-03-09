@@ -143,7 +143,7 @@ export default function CalendarScreen() {
   }, [planItems]);
 
   return (
-    <SafeAreaView className="flex-1 bg-stone-50 dark:bg-slate-950">
+    <SafeAreaView edges={['top', 'left', 'right']} className="flex-1 bg-stone-50 dark:bg-slate-950">
       <View className="px-5 pt-4 pb-2 flex-row items-center justify-between">
         <Text className="text-2xl font-bold text-slate-900 dark:text-white">
           Meal Plan

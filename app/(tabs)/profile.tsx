@@ -53,7 +53,7 @@ export default function ProfileScreen() {
   const budget = profile?.weekly_budget ?? onboarding.weekly_budget;
 
   return (
-    <SafeAreaView className="flex-1 bg-stone-50 dark:bg-slate-950">
+    <SafeAreaView edges={['top', 'left', 'right']} className="flex-1 bg-stone-50 dark:bg-slate-950">
       <ScrollView className="flex-1 px-5" showsVerticalScrollIndicator={false}>
         <View className="pt-4 pb-6 flex-row items-start justify-between">
           <View>
