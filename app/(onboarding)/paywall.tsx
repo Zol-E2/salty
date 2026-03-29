@@ -59,7 +59,7 @@ export default function PaywallScreen() {
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className="px-6 pt-8">
           {/* Step 5 of 6 — locale step inserted before goals */}
-          <ProgressDots total={6} current={5} />
+          <ProgressDots total={7} current={6} />
         </View>
 
         <View className="px-6 pt-8 pb-4 items-center">

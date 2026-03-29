@@ -45,7 +45,7 @@ export default function GoalsScreen() {
       <View className="flex-1 px-6">
         <View className="pt-8 mb-8">
           {/* Step 2 of 6 — locale step was inserted before this one */}
-          <ProgressDots total={6} current={2} />
+          <ProgressDots total={7} current={2} />
         </View>
 
         <Text className="text-2xl font-bold text-slate-900 dark:text-white mb-2">

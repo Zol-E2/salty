@@ -98,7 +98,9 @@ export function useCreateMeal() {
 
   return useMutation({
     mutationFn: async (meal: Omit<Meal, 'id' | 'user_id' | 'created_at'>) => {
-      // Validate all meal fields before inserting
+      // Validate all meal fields before inserting.
+      // `language`, `is_fallback`, and `fallback_meal_id` are included in the
+      // schema so callers can set them directly on the payload.
       const validated = mealCreateSchema.parse(meal);
 
       const { data, error } = await supabase

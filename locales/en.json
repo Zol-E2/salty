@@ -56,6 +56,23 @@
       "title": "Your preferences",
       "subtitle": "Help us find the perfect meals for you"
     },
+    "nutrition": {
+      "title": "Nutrition Goals",
+      "subtitle": "Help us personalise your meals",
+      "weight": "Your weight",
+      "weightUnit": "kg",
+      "nutritionGoal": "Body goal",
+      "goals": {
+        "lose": "Lose weight",
+        "maintain": "Maintain",
+        "gain": "Build muscle"
+      },
+      "dailyCalories": "Daily calorie target",
+      "mealsPerDay": "Meals per day",
+      "favoriteFoods": "Favourite foods",
+      "foodsToAvoid": "Foods to avoid",
+      "skip": "Skip"
+    },
     "complete": {
       "title": "You're all set!",
       "subtitle": "Here's a summary of your preferences",
@@ -108,7 +125,10 @@
     "daySummary": "Day Summary",
     "calories": "Calories",
     "cost": "Cost",
-    "time": "Time"
+    "time": "Time",
+    "swapToFallback": "Swap to quick version",
+    "restoreOriginal": "Restore original",
+    "slotIndexed": "{{slot}} {{index}}"
   },
   "generate": {
     "title": "AI Generate",

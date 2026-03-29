@@ -43,6 +43,7 @@ import { PreferencesForm } from '../components/forms/PreferencesForm';
 import { DietaryRestriction, Profile } from '../lib/types';
 import { LANGUAGES, CURRENCIES } from '../lib/constants';
 import { changeLanguage } from '../lib/i18n';
+import { useTriggerTranslations } from '../hooks/useTranslation';
 
 /** Goal options displayed in the Goal card. Labels resolved via t() at render time. */
 const GOAL_DATA: {
@@ -65,6 +66,8 @@ export default function SettingsScreen() {
   const deleteAllMealPlans = useDeleteAllMealPlans();
   const onboarding = useOnboardingStore();
   const { mode, setMode } = useThemeStore();
+
+  const { trigger: triggerTranslations, isTranslating } = useTriggerTranslations();
 
   const [goal, setGoal] = useState('');
   const [weeklyBudget, setWeeklyBudget] = useState(50);
@@ -118,6 +121,14 @@ export default function SettingsScreen() {
 
       // Apply language immediately so the UI relabels without a restart
       await changeLanguage(selectedLanguage);
+
+      // If the language changed, trigger background translation of saved meals.
+      // This runs asynchronously without blocking the save confirmation.
+      const previousLanguage = profile?.language ?? onboarding.language;
+      if (selectedLanguage !== previousLanguage) {
+        // Fire-and-forget: errors are logged inside useTriggerTranslations
+        triggerTranslations(selectedLanguage);
+      }
 
       Alert.alert(t('settings.saved'), t('settings.savedMsg'));
     } catch {

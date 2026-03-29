@@ -12,6 +12,13 @@
  *
  * The screen does not allow editing — users tap the settings gear icon to
  * navigate to `app/settings.tsx` for modifications.
+ *
+ * Sections:
+ *   - Preferences (goal, budget, skill, dietary, language, currency)
+ *   - Nutrition (weight, goal, calories, meals per day; read-only display)
+ *   - Pro Upgrade
+ *   - Sign Out
+ *   - Developer Tools
  */
 
 import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
@@ -115,6 +122,9 @@ export default function ProfileScreen() {
             isLast
           />
         </Card>
+
+        {/* Nutrition */}
+        <NutritionCard profile={profile} onboarding={onboarding} />
 
         {/* Pro Upgrade */}
         <Card className="mb-4 border-amber-300 dark:border-amber-700">
@@ -232,17 +242,74 @@ function ProfileRow({
 }) {
   return (
     <View
-      className={`flex-row items-center py-3 ${
+      className={`flex-row items-center py-3.5 ${
         !isLast ? 'border-b border-slate-100 dark:border-slate-800' : ''
       }`}
     >
       <Ionicons name={icon} size={18} color="#64748B" />
-      <Text className="text-sm text-slate-500 dark:text-slate-400 ml-3 w-20">
+      <Text className="text-sm text-slate-500 dark:text-slate-400 ml-3 flex-1">
         {label}
       </Text>
-      <Text className="text-sm font-medium text-slate-900 dark:text-white flex-1">
+      <Text className="text-sm font-medium text-slate-900 dark:text-white text-right ml-4 max-w-[55%]">
         {value}
       </Text>
     </View>
+  );
+}
+
+/**
+ * NutritionCard displays body-composition data from the nutrition onboarding step.
+ * Falls back to onboarding store values when the Supabase profile is not yet loaded.
+ * All fields are read-only — the user can edit them by re-running the onboarding
+ * nutrition step or through a future dedicated settings screen.
+ *
+ * @param props.profile - Supabase profile row (may be null when loading).
+ * @param props.onboarding - Onboarding store state for offline fallback.
+ */
+function NutritionCard({
+  profile,
+  onboarding,
+}: {
+  profile: any;
+  onboarding: ReturnType<typeof useOnboardingStore.getState>;
+}) {
+  const { t } = useTranslation();
+  // Resolve values: DB profile takes priority over local store
+  const weight = profile?.weight_kg ?? onboarding.weight_kg;
+  const goal = profile?.nutrition_goal ?? onboarding.nutrition_goal;
+  const calories = profile?.daily_calories ?? onboarding.daily_calories;
+  const mealsPerDay = profile?.meals_per_day ?? onboarding.meals_per_day ?? 4;
+  const favFoods: string[] = profile?.favorite_foods ?? onboarding.favorite_foods ?? [];
+  const avoidFoods: string[] = profile?.foods_to_avoid ?? onboarding.foods_to_avoid ?? [];
+
+  const goalLabel = goal ? t(`onboarding.nutrition.goals.${goal}`) : t('common.none');
+  const weightDisplay = weight != null ? `${weight} kg` : t('common.none');
+  const caloriesDisplay = calories != null ? `${calories} kcal` : t('common.none');
+
+  // Build the row list dynamically so the last item always gets isLast=true
+  const rows: { icon: string; label: string; value: string }[] = [
+    { icon: 'body-outline',          label: t('onboarding.nutrition.weight'),        value: weightDisplay },
+    { icon: 'trending-down-outline', label: t('onboarding.nutrition.nutritionGoal'), value: goalLabel },
+    { icon: 'flame-outline',         label: t('onboarding.nutrition.dailyCalories'), value: caloriesDisplay },
+    { icon: 'restaurant-outline',    label: t('onboarding.nutrition.mealsPerDay'),   value: String(mealsPerDay) },
+    { icon: 'heart-outline',         label: t('onboarding.nutrition.favoriteFoods'), value: favFoods.join(', ') || t('common.none') },
+    { icon: 'ban-outline',           label: t('onboarding.nutrition.foodsToAvoid'),  value: avoidFoods.join(', ') || t('common.none') },
+  ];
+
+  return (
+    <Card className="mb-4">
+      <Text className="text-base font-semibold text-slate-900 dark:text-white mb-3">
+        {t('onboarding.nutrition.title')}
+      </Text>
+      {rows.map((row, i) => (
+        <ProfileRow
+          key={row.label}
+          icon={row.icon as keyof typeof Ionicons.glyphMap}
+          label={row.label}
+          value={row.value}
+          isLast={i === rows.length - 1}
+        />
+      ))}
+    </Card>
   );
 }

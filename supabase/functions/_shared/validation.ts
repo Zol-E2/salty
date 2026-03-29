@@ -89,9 +89,18 @@ const safeIngredientString = z
   .transform((val) => sanitizeForPrompt(val.trim()))
   .pipe(z.string().min(1, 'Ingredient cannot be empty'));
 
+// Safe food string for favorite_foods / foods_to_avoid lists
+const safeFoodString = z
+  .string()
+  .max(100, 'Each food must be 100 characters or less')
+  .transform((val) => sanitizeForPrompt(val.trim()))
+  .pipe(z.string().min(1, 'Food name cannot be empty'));
+
 // Supported language and currency codes — must match lib/constants.ts LANGUAGES / CURRENCIES
 const VALID_LANGUAGES = ['en', 'hu', 'de', 'fr', 'es', 'it', 'pt', 'nl', 'el', 'fi'] as const;
 const VALID_CURRENCIES = ['USD', 'EUR', 'GBP', 'HUF'] as const;
+
+const VALID_NUTRITION_GOALS = ['lose', 'maintain', 'gain'] as const;
 
 export const GenerateMealPlanSchema = z
   .object({
@@ -107,6 +116,14 @@ export const GenerateMealPlanSchema = z
     // existing clients that haven't yet picked up the new schema.
     language: z.enum(VALID_LANGUAGES).optional().default('en'),
     currency: z.enum(VALID_CURRENCIES).optional().default('USD'),
+    // --- Nutrition fields: optional to support clients without the new onboarding step ---
+    // weight_kg range matches the DB CHECK constraint (30–300 kg).
+    weight_kg: z.number().min(30).max(300).nullable().optional(),
+    nutrition_goal: z.enum(VALID_NUTRITION_GOALS).nullable().optional(),
+    favorite_foods: z.array(safeFoodString).max(30).optional(),
+    foods_to_avoid: z.array(safeFoodString).max(30).optional(),
+    // meals_per_day range matches the DB CHECK constraint (2–6).
+    meals_per_day: z.number().int().min(2).max(6).nullable().optional(),
   })
   .strict(); // Reject unexpected fields
 

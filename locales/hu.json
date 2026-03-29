@@ -56,6 +56,23 @@
       "title": "Preferenciáid",
       "subtitle": "Segíts megtalálni a számodra tökéletes ételeket"
     },
+    "nutrition": {
+      "title": "Táplálkozási célok",
+      "subtitle": "Segíts személyre szabni az étrendterveket",
+      "weight": "Testsúlyod",
+      "weightUnit": "kg",
+      "nutritionGoal": "Testcél",
+      "goals": {
+        "lose": "Fogyás",
+        "maintain": "Súlymegőrzés",
+        "gain": "Izomépítés"
+      },
+      "dailyCalories": "Napi kalóriacél",
+      "mealsPerDay": "Étkezések száma naponta",
+      "favoriteFoods": "Kedvenc ételek",
+      "foodsToAvoid": "Kerülendő ételek",
+      "skip": "Kihagyás"
+    },
     "complete": {
       "title": "Minden kész!",
       "subtitle": "Az preferenciáid összefoglalója",
@@ -108,7 +125,10 @@
     "daySummary": "Napi összefoglaló",
     "calories": "Kalória",
     "cost": "Költség",
-    "time": "Idő"
+    "time": "Idő",
+    "swapToFallback": "Váltás a gyors verzióra",
+    "restoreOriginal": "Eredeti visszaállítása",
+    "slotIndexed": "{{slot}} {{index}}"
   },
   "generate": {
     "title": "AI Generálás",

@@ -56,6 +56,23 @@
       "title": "Deine Präferenzen",
       "subtitle": "Hilf uns, die perfekten Mahlzeiten für dich zu finden"
     },
+    "nutrition": {
+      "title": "Ernährungsziele",
+      "subtitle": "Hilf uns, deine Mahlzeiten zu personalisieren",
+      "weight": "Dein Gewicht",
+      "weightUnit": "kg",
+      "nutritionGoal": "Körperziel",
+      "goals": {
+        "lose": "Abnehmen",
+        "maintain": "Gewicht halten",
+        "gain": "Muskelaufbau"
+      },
+      "dailyCalories": "Tägliches Kalorienziel",
+      "mealsPerDay": "Mahlzeiten pro Tag",
+      "favoriteFoods": "Lieblingsessen",
+      "foodsToAvoid": "Zu vermeidende Speisen",
+      "skip": "Überspringen"
+    },
     "complete": {
       "title": "Alles fertig!",
       "subtitle": "Zusammenfassung deiner Präferenzen",
@@ -108,7 +125,10 @@
     "daySummary": "Tageszusammenfassung",
     "calories": "Kalorien",
     "cost": "Kosten",
-    "time": "Zeit"
+    "time": "Zeit",
+    "swapToFallback": "Zur schnellen Version wechseln",
+    "restoreOriginal": "Original wiederherstellen",
+    "slotIndexed": "{{slot}} {{index}}"
   },
   "generate": {
     "title": "KI Generieren",

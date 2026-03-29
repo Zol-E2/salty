@@ -41,6 +41,13 @@ const storedOnboardingSchema = z.object({
   // Language and currency added in v2 — defaults let old stored records upgrade seamlessly
   language: z.string().optional().default('en'),
   currency: z.string().optional().default('USD'),
+  // Nutrition fields added in v3 — all optional so old stored records are not invalidated
+  weight_kg: z.number().nullable().optional().default(null),
+  nutrition_goal: z.enum(['lose', 'maintain', 'gain']).nullable().optional().default(null),
+  daily_calories: z.number().nullable().optional().default(null),
+  favorite_foods: z.array(z.string()).optional().default([]),
+  foods_to_avoid: z.array(z.string()).optional().default([]),
+  meals_per_day: z.number().optional().default(4),
 });
 
 // ---------------------------------------------------------------------------
@@ -68,6 +75,21 @@ interface OnboardingState {
   language: string;
   /** ISO 4217 currency code chosen during onboarding (e.g. `'USD'`, `'HUF'`). */
   currency: string;
+
+  // --- Nutrition fields (from onboarding step 4) ---
+
+  /** Body weight in kilograms, or null if not provided. */
+  weight_kg: number | null;
+  /** Body-composition goal, or null if not provided. */
+  nutrition_goal: 'lose' | 'maintain' | 'gain' | null;
+  /** Daily calorie target, or null if not provided. */
+  daily_calories: number | null;
+  /** Foods the user enjoys — AI incorporates them often. */
+  favorite_foods: string[];
+  /** Foods to exclude from all plans. */
+  foods_to_avoid: string[];
+  /** How many meals per day to generate (2–6). Defaults to 4. */
+  meals_per_day: number;
 
   // --- Actions ---
 
@@ -98,6 +120,36 @@ interface OnboardingState {
    * @param currency - ISO 4217 currency code (e.g. `'USD'`, `'HUF'`).
    */
   setCurrency: (currency: string) => void;
+  /**
+   * Sets the user's body weight in kg (null to clear).
+   * @param kg - Weight in kilograms, or null.
+   */
+  setWeightKg: (kg: number | null) => void;
+  /**
+   * Sets the body-composition goal (null to clear).
+   * @param goal - `'lose'`, `'maintain'`, `'gain'`, or `null`.
+   */
+  setNutritionGoal: (goal: 'lose' | 'maintain' | 'gain' | null) => void;
+  /**
+   * Sets the daily calorie target (null to clear).
+   * @param cal - Calories per day, or null.
+   */
+  setDailyCalories: (cal: number | null) => void;
+  /**
+   * Replaces the favourite foods list.
+   * @param foods - Array of food name strings.
+   */
+  setFavoriteFoods: (foods: string[]) => void;
+  /**
+   * Replaces the foods-to-avoid list.
+   * @param foods - Array of food name strings.
+   */
+  setFoodsToAvoid: (foods: string[]) => void;
+  /**
+   * Sets the number of meals per day to generate.
+   * @param count - Integer 2–6.
+   */
+  setMealsPerDay: (count: number) => void;
   /**
    * Persists current preferences to SecureStore and sets `onboardingComplete`.
    * Called when the user reaches the final onboarding step.
@@ -130,12 +182,25 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
   isLoaded: false,
   language: 'en',
   currency: 'USD',
+  // Nutrition defaults: all optional — null/empty until the user fills the step
+  weight_kg: null,
+  nutrition_goal: null,
+  daily_calories: null,
+  favorite_foods: [],
+  foods_to_avoid: [],
+  meals_per_day: 4,
 
   setGoal: (goal) => set({ goal }),
   setBudget: (weekly_budget) => set({ weekly_budget }),
   setSkillLevel: (skill_level) => set({ skill_level }),
   setLanguage: (language) => set({ language }),
   setCurrency: (currency) => set({ currency }),
+  setWeightKg: (weight_kg) => set({ weight_kg }),
+  setNutritionGoal: (nutrition_goal) => set({ nutrition_goal }),
+  setDailyCalories: (daily_calories) => set({ daily_calories }),
+  setFavoriteFoods: (favorite_foods) => set({ favorite_foods }),
+  setFoodsToAvoid: (foods_to_avoid) => set({ foods_to_avoid }),
+  setMealsPerDay: (meals_per_day) => set({ meals_per_day }),
 
   toggleDietaryRestriction: (restriction) =>
     set((state) => ({
@@ -147,7 +212,10 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
   setDietaryRestrictions: (dietary_restrictions) => set({ dietary_restrictions }),
 
   markComplete: async () => {
-    const { goal, weekly_budget, skill_level, dietary_restrictions, language, currency } = get();
+    const {
+      goal, weekly_budget, skill_level, dietary_restrictions, language, currency,
+      weight_kg, nutrition_goal, daily_calories, favorite_foods, foods_to_avoid, meals_per_day,
+    } = get();
     const data = JSON.stringify({
       goal,
       weekly_budget,
@@ -156,6 +224,12 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
       onboardingComplete: true,
       language,
       currency,
+      weight_kg,
+      nutrition_goal,
+      daily_calories,
+      favorite_foods,
+      foods_to_avoid,
+      meals_per_day,
     });
     await SecureStore.setItemAsync(ONBOARDING_KEY, data);
     set({ onboardingComplete: true });
@@ -186,6 +260,12 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
           onboardingComplete: data.onboardingComplete,
           language: data.language,
           currency: data.currency,
+          weight_kg: data.weight_kg ?? null,
+          nutrition_goal: data.nutrition_goal ?? null,
+          daily_calories: data.daily_calories ?? null,
+          favorite_foods: data.favorite_foods ?? [],
+          foods_to_avoid: data.foods_to_avoid ?? [],
+          meals_per_day: data.meals_per_day ?? 4,
           isLoaded: true,
         });
       } else {
@@ -209,6 +289,12 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
       onboardingComplete: false,
       language: 'en',
       currency: 'USD',
+      weight_kg: null,
+      nutrition_goal: null,
+      daily_calories: null,
+      favorite_foods: [],
+      foods_to_avoid: [],
+      meals_per_day: 4,
     });
   },
 }));

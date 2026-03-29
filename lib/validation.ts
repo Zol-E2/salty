@@ -165,6 +165,16 @@ const safeIngredientString = z
 const VALID_LANGUAGES = ['en', 'hu', 'de', 'fr', 'es', 'it', 'pt', 'nl', 'el', 'fi'] as const;
 const VALID_CURRENCIES = ['USD', 'EUR', 'GBP', 'HUF'] as const;
 
+/**
+ * Safe string schema for user-provided food names (favorites / avoid lists).
+ * Same sanitization pipeline as ingredient strings but with a shorter label.
+ */
+const safeFoodString = z
+  .string()
+  .max(100, 'Each food must be 100 characters or less')
+  .transform((val) => sanitizeForPrompt(val.trim()))
+  .pipe(z.string().min(1, 'Food name cannot be empty'));
+
 /** Validates the full meal generation request before sending to the edge function. */
 export const generateMealPlanSchema = z.object({
   timeframe: z.enum(VALID_TIMEFRAMES),
@@ -185,6 +195,15 @@ export const generateMealPlanSchema = z.object({
   // Optional — defaults handled server-side for backward compatibility
   language: z.enum(VALID_LANGUAGES).optional(),
   currency: z.enum(VALID_CURRENCIES).optional(),
+  // --- Nutrition onboarding fields (optional — not all users complete this step) ---
+  // weight_kg range matches the DB CHECK constraint (30–300 kg).
+  weight_kg: z.number().min(30, 'Weight must be at least 30 kg').max(300, 'Weight cannot exceed 300 kg').nullable().optional(),
+  nutrition_goal: z.enum(['lose', 'maintain', 'gain']).nullable().optional(),
+  // favorite_foods / foods_to_avoid: max 30 items each, each item sanitized
+  favorite_foods: z.array(safeFoodString).max(30).optional(),
+  foods_to_avoid: z.array(safeFoodString).max(30).optional(),
+  // meals_per_day matches the DB CHECK constraint (2–6).
+  meals_per_day: z.number().int().min(2, 'At least 2 meals per day').max(6, 'At most 6 meals per day').nullable().optional(),
 });
 
 // ---------------------------------------------------------------------------
@@ -206,6 +225,14 @@ export const profileUpdateSchema = z
     onboarding_complete: z.boolean().optional(),
     language: z.enum(VALID_LANGUAGES).optional(),
     currency: z.enum(VALID_CURRENCIES).optional(),
+    // --- Nutrition fields (from migration 004) ---
+    weight_kg: z.number().min(30).max(300).nullable().optional(),
+    nutrition_goal: z.enum(['lose', 'maintain', 'gain']).nullable().optional(),
+    // daily_calories: 800–10000 matches the DB CHECK constraint.
+    daily_calories: z.number().int().min(800).max(10000).nullable().optional(),
+    favorite_foods: z.array(z.string().max(100)).max(30).optional(),
+    foods_to_avoid: z.array(z.string().max(100)).max(30).optional(),
+    meals_per_day: z.number().int().min(2).max(6).optional(),
   })
   .strict();
 
@@ -245,6 +272,12 @@ export const mealCreateSchema = z.object({
   meal_type: z.array(z.enum(VALID_MEAL_TYPES)).min(1).max(4),
   tags: z.array(z.string().max(50)).max(20).default([]),
   is_ai_generated: z.boolean().default(false),
+  // Language of the generated text — must match DB CHECK constraint list.
+  language: z.enum(VALID_LANGUAGES).default('en'),
+  // Fallback flag — true for quick-alternative meals created by the AI prompt.
+  is_fallback: z.boolean().default(false),
+  // UUID of the associated fallback meal (primary meals only; null for fallbacks).
+  fallback_meal_id: z.string().uuid().nullable().optional(),
 });
 
 // ---------------------------------------------------------------------------
@@ -258,6 +291,9 @@ export const mealPlanItemSchema = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD format'),
   slot: z.enum(VALID_MEAL_TYPES),
+  // slot_index allows multiple meals of the same type per day (e.g. 2 snacks).
+  // Range 0–5 matches the DB CHECK constraint.
+  slot_index: z.number().int().min(0).max(5).default(0),
 });
 
 // ---------------------------------------------------------------------------
