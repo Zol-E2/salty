@@ -215,6 +215,114 @@ export function useFindPrimaryMeal(fallbackMealId: string | null | undefined) {
 }
 
 /**
+ * Mutation hook that moves a plan item to a different date and/or slot.
+ *
+ * Deletes the source `meal_plan_items` row, then upserts a new row at the
+ * target `(date, slot, slot_index: 0)`. Uses slot_index 0 so the meal always
+ * occupies the primary position in the target slot.
+ *
+ * On success, both `['meal-plan']` and `['meal-plan-day']` keys are invalidated
+ * (which also covers `['meal-plan', 'weekly-spend', ...]` via prefix matching).
+ *
+ * @returns A mutation. Call `.mutateAsync({ planItemId, mealId, targetDate, targetSlot })`.
+ */
+export function useMoveMealInPlan() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      planItemId,
+      mealId,
+      targetDate,
+      targetSlot,
+    }: {
+      /** UUID of the meal_plan_items row to remove from the source slot. */
+      planItemId: string;
+      /** UUID of the meal to place at the target. */
+      mealId: string;
+      /** Target date in YYYY-MM-DD format. */
+      targetDate: string;
+      /** Target slot type. */
+      targetSlot: MealSlotType;
+    }) => {
+      // Delete source plan item
+      const { error: deleteError } = await supabase
+        .from('meal_plan_items')
+        .delete()
+        .eq('id', planItemId);
+      if (deleteError) throw deleteError;
+
+      // Upsert at target (slot_index 0 — replaces existing primary if occupied)
+      const { error: upsertError } = await supabase
+        .from('meal_plan_items')
+        .upsert(
+          {
+            user_id: user!.id,
+            meal_id: mealId,
+            date: targetDate,
+            slot: targetSlot,
+            slot_index: 0,
+          },
+          { onConflict: 'user_id,date,slot,slot_index' }
+        );
+      if (upsertError) throw upsertError;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['meal-plan'] });
+      queryClient.invalidateQueries({ queryKey: ['meal-plan-day'] });
+    },
+  });
+}
+
+/**
+ * Mutation hook that copies a meal to a different date and slot without
+ * removing it from its current position.
+ *
+ * Upserts a new `meal_plan_items` row at `(targetDate, targetSlot, slot_index: 0)`.
+ * The source plan item remains unchanged.
+ *
+ * @returns A mutation. Call `.mutateAsync({ mealId, targetDate, targetSlot })`.
+ */
+export function useCopyMealInPlan() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      mealId,
+      targetDate,
+      targetSlot,
+    }: {
+      /** UUID of the meal to copy. */
+      mealId: string;
+      /** Target date in YYYY-MM-DD format. */
+      targetDate: string;
+      /** Target slot type. */
+      targetSlot: MealSlotType;
+    }) => {
+      const { error } = await supabase
+        .from('meal_plan_items')
+        .upsert(
+          {
+            user_id: user!.id,
+            meal_id: mealId,
+            date: targetDate,
+            slot: targetSlot,
+            slot_index: 0,
+          },
+          { onConflict: 'user_id,date,slot,slot_index' }
+        );
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['meal-plan'] });
+      queryClient.invalidateQueries({ queryKey: ['meal-plan-day'] });
+    },
+  });
+}
+
+/**
  * Mutation hook for removing a single meal plan item by its UUID.
  *
  * On success, both `['meal-plan']` and `['meal-plan-day']` query keys are

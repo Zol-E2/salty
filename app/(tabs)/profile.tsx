@@ -15,6 +15,7 @@
  *
  * Sections:
  *   - Preferences (goal, budget, skill, dietary, language, currency)
+ *   - Weekly Budget (spend vs budget for the current ISO week with progress bar)
  *   - Nutrition (weight, goal, calories, meals per day; read-only display)
  *   - Pro Upgrade
  *   - Sign Out
@@ -30,6 +31,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useProfile } from '../../hooks/useProfile';
 import { useOnboardingStore } from '../../stores/onboardingStore';
 import { useExchangeRateStore } from '../../stores/exchangeRateStore';
+import { useWeeklySpend } from '../../hooks/useWeeklySpend';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { GOALS, SKILL_LEVELS, DIETARY_OPTIONS, LANGUAGES, CURRENCIES } from '../../lib/constants';
@@ -122,6 +124,13 @@ export default function ProfileScreen() {
             isLast
           />
         </Card>
+
+        {/* Weekly Budget */}
+        <WeeklyBudgetCard
+          weeklyBudget={budget}
+          activeCurrency={activeCurrency}
+          rates={rates}
+        />
 
         {/* Nutrition */}
         <NutritionCard profile={profile} onboarding={onboarding} />
@@ -254,6 +263,101 @@ function ProfileRow({
         {value}
       </Text>
     </View>
+  );
+}
+
+/**
+ * WeeklyBudgetCard shows the user's weekly grocery budget alongside the total
+ * spend for the current ISO week (Monday–Sunday) as a progress bar.
+ *
+ * Data sources:
+ *   - `weeklyBudget` — from the Supabase profile / onboarding store (passed in).
+ *   - `totalSpend` — from `useWeeklySpend` (React Query, sums meal costs for
+ *     non-fallback plan items in the current week).
+ *
+ * The progress bar turns amber when ≥80% of the budget is used, and rose when
+ * over budget (spend > budget). The remaining value is shown in rose when negative.
+ *
+ * @param props.weeklyBudget - User's weekly budget in their base currency (USD).
+ * @param props.activeCurrency - ISO 4217 code for display formatting.
+ * @param props.rates - Exchange rates from the exchange rate store.
+ */
+function WeeklyBudgetCard({
+  weeklyBudget,
+  activeCurrency,
+  rates,
+}: {
+  weeklyBudget: number;
+  activeCurrency: string;
+  rates: Record<string, number>;
+}) {
+  const { t } = useTranslation();
+  const { totalSpend, isLoading } = useWeeklySpend();
+
+  // Only render when a budget has been set
+  if (weeklyBudget <= 0) return null;
+
+  const pct = Math.min(totalSpend / weeklyBudget, 1);
+  const remaining = weeklyBudget - totalSpend;
+
+  // Bar colour: green → amber at 80% → rose when over budget
+  const barColor =
+    totalSpend > weeklyBudget ? '#F43F5E' : totalSpend / weeklyBudget >= 0.8 ? '#F59E0B' : '#10B981';
+
+  const fmt = (amount: number) => formatAmount(amount, activeCurrency, rates);
+
+  return (
+    <Card className="mb-4">
+      <View className="flex-row items-center mb-3">
+        <View className="w-10 h-10 bg-emerald-100 dark:bg-emerald-400/10 rounded-xl items-center justify-center mr-3">
+          <Ionicons name="wallet-outline" size={20} color="#10B981" />
+        </View>
+        <Text className="text-base font-semibold text-slate-900 dark:text-white flex-1">
+          {t('profile.weeklyBudgetTitle')}
+        </Text>
+      </View>
+
+      {/* Budget row */}
+      <View className="flex-row justify-between items-center mb-2">
+        <Text className="text-sm text-slate-500 dark:text-slate-400">
+          {t('profile.budget')}
+        </Text>
+        <Text className="text-sm font-medium text-slate-900 dark:text-white">
+          {fmt(weeklyBudget)}{t('profile.perWeek')}
+        </Text>
+      </View>
+
+      {/* This week row */}
+      <View className="flex-row justify-between items-center mb-3">
+        <Text className="text-sm text-slate-500 dark:text-slate-400">
+          {t('profile.thisWeek')}
+        </Text>
+        <Text className="text-sm font-medium text-slate-900 dark:text-white">
+          {isLoading ? '...' : t('profile.budgetOf', { spent: fmt(totalSpend), budget: fmt(weeklyBudget) })}
+        </Text>
+      </View>
+
+      {/* Progress bar */}
+      <View className="h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden mb-2">
+        <View
+          className="h-full rounded-full"
+          style={{ width: `${pct * 100}%`, backgroundColor: barColor }}
+        />
+      </View>
+
+      {/* Remaining row */}
+      <View className="flex-row justify-between items-center">
+        <Text className="text-xs text-slate-400 dark:text-slate-500">
+          {t('profile.remaining')}
+        </Text>
+        <Text
+          className="text-xs font-semibold"
+          style={{ color: remaining < 0 ? '#F43F5E' : '#10B981' }}
+        >
+          {isLoading ? '...' : fmt(remaining)}
+        </Text>
+      </View>
+    </Card>
   );
 }
 

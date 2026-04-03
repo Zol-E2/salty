@@ -1,18 +1,21 @@
 /**
  * @file app/meal/add.tsx
- * Modal screen for adding an existing saved meal to a specific slot on a calendar day.
+ * Modal screen for adding or replacing a meal in a specific slot on a calendar day.
  *
- * Route: `/meal/add?date=YYYY-MM-DD&slot=<MealSlotType>`
+ * Route: `/meal/add?date=YYYY-MM-DD&slot=<MealSlotType>[&slot_index=0][&replace=1]`
  * Presentation: modal (slide_from_bottom) — registered in `app/_layout.tsx`.
  *
  * Query params:
- *   - `date` — the target day in YYYY-MM-DD format
- *   - `slot` — the meal slot to fill ('breakfast' | 'lunch' | 'dinner' | 'snack')
+ *   - `date`        — the target day in YYYY-MM-DD format
+ *   - `slot`        — the meal slot to fill ('breakfast' | 'lunch' | 'dinner' | 'snack')
+ *   - `slot_index`  — 0-based index within the slot; defaults to 0
+ *   - `replace`     — when `'1'`, the header says "Replace [slot]" instead of "Add [slot]"
+ *                     and a note explains the current meal will be replaced.
  *
  * The screen shows the user's saved meals with a live search bar. Tapping a meal
  * calls `useAddMealToPlan()`, which upserts into `meal_plan_items` keyed on
- * (user_id, date, slot) — replacing any previously assigned meal for that slot.
- * On success it calls `router.back()` to return to the day detail view.
+ * (user_id, date, slot, slot_index) — replacing any previously assigned meal for that
+ * slot+index combination. On success it calls `router.back()` to return to the day view.
  */
 
 import { useState } from 'react';
@@ -54,10 +57,17 @@ function isMealSlotType(value: string): value is MealSlotType {
 export default function AddMealScreen() {
   const { t } = useTranslation();
   const language = useOnboardingStore((s) => s.language);
-  const { date, slot } = useLocalSearchParams<{
+  const { date, slot, slot_index, replace } = useLocalSearchParams<{
     date: string;
     slot: string;
+    slot_index?: string;
+    replace?: string;
   }>();
+
+  // `replace=1` switches the header from "Add" to "Replace"
+  const isReplace = replace === '1';
+  // Parse slot_index; fall back to 0 for backward compatibility
+  const slotIndex = slot_index ? parseInt(slot_index, 10) : 0;
   const router = useRouter();
   const [search, setSearch] = useState('');
   const { data: meals, isLoading } = useMeals(search);
@@ -70,14 +80,15 @@ export default function AddMealScreen() {
     ? validSlot.charAt(0).toUpperCase() + validSlot.slice(1)
     : 'Meal';
 
-  /** Validates params, inserts the meal plan item, and navigates back on success. */
+  /** Validates params, upserts the meal plan item, and navigates back on success. */
   const handleAddMeal = async (mealId: string) => {
     if (!validSlot) {
       Alert.alert(t('common.error'), 'Invalid meal slot. Please try again.');
       return;
     }
     try {
-      await addMeal.mutateAsync({ meal_id: mealId, date, slot: validSlot });
+      // slot_index is passed so that replace mode overwrites the correct slot position
+      await addMeal.mutateAsync({ meal_id: mealId, date, slot: validSlot, slot_index: slotIndex });
       router.back();
     } catch {
       Alert.alert(t('common.error'), 'Failed to add meal to plan');
@@ -93,7 +104,9 @@ export default function AddMealScreen() {
         </TouchableOpacity>
         <View>
           <Text className="text-xl font-bold text-slate-900 dark:text-white">
-            {t('meal.addSlotTitle', { slot: slotLabel })}
+            {isReplace
+              ? t('day.replaceWithMeal')
+              : t('meal.addSlotTitle', { slot: slotLabel })}
           </Text>
           {date && (
             <Text className="text-sm text-slate-500 dark:text-slate-400">

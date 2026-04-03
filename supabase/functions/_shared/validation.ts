@@ -122,8 +122,12 @@ export const GenerateMealPlanSchema = z
     nutrition_goal: z.enum(VALID_NUTRITION_GOALS).nullable().optional(),
     favorite_foods: z.array(safeFoodString).max(30).optional(),
     foods_to_avoid: z.array(safeFoodString).max(30).optional(),
-    // meals_per_day range matches the DB CHECK constraint (2–6).
-    meals_per_day: z.number().int().min(2).max(6).nullable().optional(),
+    // meals_per_day: 1 is allowed for single-meal regeneration. The DB CHECK
+    // constraint (2–6) is on the profiles user setting, not on this request.
+    meals_per_day: z.number().int().min(1).max(6).nullable().optional(),
+    // target_slot: when set alongside meals_per_day=1, forces Gemini to generate
+    // a single meal of this type (single-meal regeneration feature).
+    target_slot: z.enum(['breakfast', 'lunch', 'dinner', 'snack'] as const).optional(),
   })
   .strict(); // Reject unexpected fields
 

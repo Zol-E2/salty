@@ -121,6 +121,26 @@ function FlowGuard() {
           gestureDirection: 'vertical',
         }}
       />
+      {/* meal/edit is a modal for editing a meal's core fields */}
+      <Stack.Screen
+        name="meal/edit"
+        options={{
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
+          animationDuration: 300,
+          gestureDirection: 'vertical',
+        }}
+      />
+      {/* meal/move is a modal for moving or copying a meal to another date/slot */}
+      <Stack.Screen
+        name="meal/move"
+        options={{
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
+          animationDuration: 300,
+          gestureDirection: 'vertical',
+        }}
+      />
       {/* day/[date] inherits the default push animation from screenOptions. */}
       <Stack.Screen name="day/[date]" />
     </Stack>

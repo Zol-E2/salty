@@ -126,9 +126,23 @@
     "calories": "Kalória",
     "cost": "Költség",
     "time": "Idő",
+    "protein": "Fehérje",
+    "carbs": "Szénhidrát",
+    "fat": "Zsír",
+    "macros": "Makrók",
+    "budgetGauge": "{{spent}} / {{budget}} naponta",
+    "calorieProgress": "{{actual}} / {{target}} kal",
     "swapToFallback": "Váltás a gyors verzióra",
     "restoreOriginal": "Eredeti visszaállítása",
-    "slotIndexed": "{{slot}} {{index}}"
+    "slotIndexed": "{{slot}} {{index}}",
+    "optionsSheet": "Étkezési beállítások",
+    "replaceWithMeal": "Csere mentett étellel",
+    "moveToSlot": "Áthelyezés más helyre",
+    "copyToDate": "Másolás másik napra",
+    "generateNewMeal": "Új étel generálása ide",
+    "deleteRecipe": "Recept törlése",
+    "deleteRecipeConfirm": "Ez az étel minden napról eltávolításra kerül, ahol megjelenik.",
+    "generatingMeal": "Generálás..."
   },
   "generate": {
     "title": "AI Generálás",
@@ -162,7 +176,12 @@
     "dayLabel": "{{number}}. nap",
     "saveToCalendar": "Mentés a naptárba",
     "tryAgain": "Próbáld újra",
-    "discard": "Elvetés"
+    "discard": "Elvetés",
+    "budgetWarning": "Meghaladja a heti büdzsét",
+    "targetPerMeal": "cél: {{calories}} kal/étel",
+    "expandIngredients": "Összetevők",
+    "tapToExpand": "Érintsen meg egy ételt az összetevők megtekintéséhez",
+    "regenerateMeal": "Étel újragenerálása"
   },
   "profile": {
     "title": "Profil",
@@ -188,7 +207,11 @@
     "signOutConfirmTitle": "Kijelentkezés",
     "signOutConfirmMsg": "Biztosan ki akarsz jelentkezni?",
     "devTools": "Fejlesztői eszközök",
-    "retakeOnboarding": "Bemutató újraindítása"
+    "retakeOnboarding": "Bemutató újraindítása",
+    "weeklyBudgetTitle": "Heti büdzsé",
+    "thisWeek": "Ezen a héten",
+    "remaining": "Fennmaradó",
+    "budgetOf": "{{spent}} / {{budget}}"
   },
   "settings": {
     "title": "Beállítások",
@@ -251,10 +274,32 @@
     "prep": "Előkészítés",
     "cook": "Főzés",
     "level": "Szint",
+    "tags": "Cimkék",
     "searchPlaceholder": "Ételek keresése...",
     "noMealsSearch": "Nincs találat. Próbálj más keresést.",
     "noMealsYet": "Még nincs étel. Generálj az AI-val!",
     "generateWithAi": "Ételek generálása AI-val",
-    "addSlotTitle": "{{slot}} hozzáadása"
+    "addSlotTitle": "{{slot}} hozzáadása",
+    "viewRecipe": "Teljes recept megtekintése",
+    "editTitle": "Étel szerkesztése",
+    "moveTitle": "Étel áthelyezése",
+    "copyTitle": "Étel másolása",
+    "selectDate": "Dátum kiválasztása",
+    "selectSlot": "Étkezési típus kiválasztása",
+    "confirmMove": "Áthelyezés ide",
+    "confirmCopy": "Másolás ide",
+    "replaceNote": "A jelenlegi étel ebben a helyen felülírásra kerül.",
+    "name": "Név",
+    "estimatedCost": "Becsült ár ({{currency}})",
+    "proteinG": "Fehérje (g)",
+    "carbsG": "Szénhidrát (g)",
+    "fatG": "Zsír (g)",
+    "prepMin": "Előkészítési idő (perc)",
+    "cookMin": "Főzési idő (perc)",
+    "tagsPlaceholder": "gyors, vegetáriánus, büdzsés...",
+    "saveError": "Nem sikerült menteni a változtatásokat.",
+    "easy": "Könnyű",
+    "medium": "Közepes",
+    "hard": "Nehéz"
   }
 }

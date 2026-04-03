@@ -126,9 +126,23 @@
     "calories": "Kalorien",
     "cost": "Kosten",
     "time": "Zeit",
+    "protein": "Eiweiß",
+    "carbs": "Kohlenhydrate",
+    "fat": "Fett",
+    "macros": "Makros",
+    "budgetGauge": "{{spent}} / {{budget}} täglich",
+    "calorieProgress": "{{actual}} / {{target}} kcal",
     "swapToFallback": "Zur schnellen Version wechseln",
     "restoreOriginal": "Original wiederherstellen",
-    "slotIndexed": "{{slot}} {{index}}"
+    "slotIndexed": "{{slot}} {{index}}",
+    "optionsSheet": "Mahlzeitoptionen",
+    "replaceWithMeal": "Mit gespeicherter Mahlzeit ersetzen",
+    "moveToSlot": "In anderen Slot verschieben",
+    "copyToDate": "Auf anderes Datum kopieren",
+    "generateNewMeal": "Neue Mahlzeit hier generieren",
+    "deleteRecipe": "Rezept löschen",
+    "deleteRecipeConfirm": "Dies entfernt die Mahlzeit von allen Tagen, an denen sie vorkommt.",
+    "generatingMeal": "Generiere..."
   },
   "generate": {
     "title": "KI Generieren",
@@ -162,7 +176,12 @@
     "dayLabel": "Tag {{number}}",
     "saveToCalendar": "Im Kalender speichern",
     "tryAgain": "Erneut versuchen",
-    "discard": "Verwerfen"
+    "discard": "Verwerfen",
+    "budgetWarning": "Überschreitet das Wochenbudget",
+    "targetPerMeal": "Ziel: {{calories}} kcal/Mahlzeit",
+    "expandIngredients": "Zutaten",
+    "tapToExpand": "Tippe auf eine Mahlzeit für die Zutaten",
+    "regenerateMeal": "Diese Mahlzeit neu generieren"
   },
   "profile": {
     "title": "Profil",
@@ -188,7 +207,11 @@
     "signOutConfirmTitle": "Abmelden",
     "signOutConfirmMsg": "Möchtest du dich wirklich abmelden?",
     "devTools": "Entwicklertools",
-    "retakeOnboarding": "Einführung wiederholen"
+    "retakeOnboarding": "Einführung wiederholen",
+    "weeklyBudgetTitle": "Wochenbudget",
+    "thisWeek": "Diese Woche",
+    "remaining": "Verbleibend",
+    "budgetOf": "{{spent}} / {{budget}}"
   },
   "settings": {
     "title": "Einstellungen",
@@ -251,10 +274,32 @@
     "prep": "Vorbereitung",
     "cook": "Kochen",
     "level": "Niveau",
+    "tags": "Tags",
     "searchPlaceholder": "Deine Mahlzeiten suchen...",
     "noMealsSearch": "Keine Mahlzeiten gefunden. Andere Suche versuchen.",
     "noMealsYet": "Noch keine Mahlzeiten. Mit KI generieren!",
     "generateWithAi": "Mahlzeiten mit KI generieren",
-    "addSlotTitle": "{{slot}} hinzufügen"
+    "addSlotTitle": "{{slot}} hinzufügen",
+    "viewRecipe": "Vollständiges Rezept anzeigen",
+    "editTitle": "Mahlzeit bearbeiten",
+    "moveTitle": "Mahlzeit verschieben",
+    "copyTitle": "Mahlzeit kopieren",
+    "selectDate": "Datum auswählen",
+    "selectSlot": "Mahlzeittyp auswählen",
+    "confirmMove": "Hierhin verschieben",
+    "confirmCopy": "Hierhin kopieren",
+    "replaceNote": "Die aktuelle Mahlzeit in diesem Slot wird ersetzt.",
+    "name": "Name",
+    "estimatedCost": "Geschätzte Kosten ({{currency}})",
+    "proteinG": "Protein (g)",
+    "carbsG": "Kohlenhydrate (g)",
+    "fatG": "Fett (g)",
+    "prepMin": "Vorbereitungszeit (Min.)",
+    "cookMin": "Kochzeit (Min.)",
+    "tagsPlaceholder": "schnell, vegetarisch, günstig...",
+    "saveError": "Änderungen konnten nicht gespeichert werden.",
+    "easy": "Einfach",
+    "medium": "Mittel",
+    "hard": "Schwer"
   }
 }

@@ -11,7 +11,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './useAuth';
 import { Meal } from '../lib/types';
-import { mealCreateSchema, searchQuerySchema } from '../lib/validation';
+import { mealCreateSchema, mealUpdateSchema, searchQuerySchema } from '../lib/validation';
 
 /**
  * Fetches the authenticated user's saved meals, optionally filtered by name.
@@ -114,6 +114,54 @@ export function useCreateMeal() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['meals'] });
+    },
+  });
+}
+
+/**
+ * Mutation hook for updating the core fields of a saved meal.
+ *
+ * Accepts a partial patch object validated by `mealUpdateSchema`. Only the
+ * fields included in the schema (name, cost, macros, times, difficulty, tags)
+ * can be changed — ingredients and instructions remain untouched.
+ *
+ * The `.eq('user_id', user!.id)` guard prevents updating another user's meal.
+ *
+ * On success, invalidates `['meals']`, `['meal', id]`, and `['meal-plan']` so
+ * the meal detail screen, meal lists, and day view all re-render with fresh data.
+ *
+ * @returns A mutation. Call `.mutateAsync({ id, patch })`.
+ */
+export function useUpdateMeal() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      patch,
+    }: {
+      /** UUID of the meal to update. */
+      id: string;
+      /** Partial field updates — validated before sending to Supabase. */
+      patch: Partial<Meal>;
+    }) => {
+      const validated = mealUpdateSchema.parse(patch);
+
+      const { error } = await supabase
+        .from('meals')
+        .update(validated)
+        .eq('id', id)
+        .eq('user_id', user!.id);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ['meals'] });
+      queryClient.invalidateQueries({ queryKey: ['meal', id] });
+      // Also refresh plan views so edited costs show in the budget gauge
+      queryClient.invalidateQueries({ queryKey: ['meal-plan'] });
+      queryClient.invalidateQueries({ queryKey: ['meal-plan-day'] });
     },
   });
 }

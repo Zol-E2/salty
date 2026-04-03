@@ -7,7 +7,8 @@
  *
  * Displays: meal name, description, type/difficulty/AI badges, quick stats
  * (prep time, cook time, cost, difficulty), macro bar, ingredient list with
- * total estimated cost, and step-by-step cooking instructions.
+ * total estimated cost, step-by-step cooking instructions, and a tags chip
+ * row (shown only when the meal has at least one tag).
  *
  * The `useMeal` query includes a `user_id` guard so users cannot view meals
  * belonging to other accounts even if they construct a URL manually.
@@ -132,12 +133,33 @@ export default function MealDetailScreen() {
           </View>
 
           {/* Instructions */}
-          <View className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-4">
+          <View className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-4 mb-6">
             <Text className="text-base font-semibold text-slate-900 dark:text-white mb-4">
               {t('meal.instructions')}
             </Text>
             <InstructionSteps instructions={meal.instructions} />
           </View>
+
+          {/* Tags — only render when the meal has at least one tag */}
+          {meal.tags && meal.tags.length > 0 && (
+            <View className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-4">
+              <Text className="text-base font-semibold text-slate-900 dark:text-white mb-3">
+                {t('meal.tags')}
+              </Text>
+              <View className="flex-row flex-wrap gap-2">
+                {meal.tags.map((tag) => (
+                  <View
+                    key={tag}
+                    className="bg-slate-100 dark:bg-slate-800 rounded-full px-3 py-1"
+                  >
+                    <Text className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                      {tag}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>

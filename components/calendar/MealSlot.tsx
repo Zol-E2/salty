@@ -36,8 +36,15 @@ interface MealSlotProps {
   /**
    * Optional remove callback. When provided, a close-circle icon is shown on the
    * filled branch that triggers this callback (shows an Alert in the parent).
+   * Kept for backward compatibility — prefer `onOptions` for new usage.
    */
   onRemove?: () => void;
+  /**
+   * Optional options callback. When provided and the slot is filled, a ⋯ icon
+   * button appears in the top-right corner of the filled branch, opening the
+   * `MealActionSheet` in the parent.
+   */
+  onOptions?: () => void;
 }
 
 /** Human-readable labels for each slot type. */
@@ -63,7 +70,7 @@ const SLOT_ICONS: Record<MealSlotType, keyof typeof Ionicons.glyphMap> = {
  *
  * @param props - See `MealSlotProps`.
  */
-export function MealSlot({ slot, item, onPress, onRemove }: MealSlotProps) {
+export function MealSlot({ slot, item, onPress, onRemove, onOptions }: MealSlotProps) {
   const color = SLOT_COLORS[slot];
 
   return (
@@ -97,7 +104,18 @@ export function MealSlot({ slot, item, onPress, onRemove }: MealSlotProps) {
               {item.meal.calories} cal · {item.meal.prep_time_min + item.meal.cook_time_min} min
             </Text>
           </View>
-          {onRemove && (
+              {/* Options button (⋯) — shown when onOptions is provided */}
+          {onOptions && (
+            <TouchableOpacity
+              onPress={onOptions}
+              hitSlop={8}
+              className="p-1"
+            >
+              <Ionicons name="ellipsis-horizontal" size={20} color="#94A3B8" />
+            </TouchableOpacity>
+          )}
+          {/* Legacy remove button — only shown when onOptions is absent */}
+          {onRemove && !onOptions && (
             <TouchableOpacity
               onPress={onRemove}
               hitSlop={8}

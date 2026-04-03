@@ -126,9 +126,23 @@
     "calories": "Calories",
     "cost": "Cost",
     "time": "Time",
+    "protein": "Protein",
+    "carbs": "Carbs",
+    "fat": "Fat",
+    "macros": "Macros",
+    "budgetGauge": "{{spent}} / {{budget}} daily",
+    "calorieProgress": "{{actual}} / {{target}} kcal",
     "swapToFallback": "Swap to quick version",
     "restoreOriginal": "Restore original",
-    "slotIndexed": "{{slot}} {{index}}"
+    "slotIndexed": "{{slot}} {{index}}",
+    "optionsSheet": "Meal options",
+    "replaceWithMeal": "Replace with saved meal",
+    "moveToSlot": "Move to different slot",
+    "copyToDate": "Copy to another date",
+    "generateNewMeal": "Generate new meal here",
+    "deleteRecipe": "Delete recipe",
+    "deleteRecipeConfirm": "This will also remove the meal from any days it appears on.",
+    "generatingMeal": "Generating..."
   },
   "generate": {
     "title": "AI Generate",
@@ -162,7 +176,12 @@
     "dayLabel": "Day {{number}}",
     "saveToCalendar": "Save to Calendar",
     "tryAgain": "Try Again",
-    "discard": "Discard"
+    "discard": "Discard",
+    "budgetWarning": "Exceeds weekly budget",
+    "targetPerMeal": "target: {{calories}} cal/meal",
+    "expandIngredients": "Ingredients",
+    "tapToExpand": "Tap a meal to see ingredients",
+    "regenerateMeal": "Regenerate this meal"
   },
   "profile": {
     "title": "Profile",
@@ -188,7 +207,11 @@
     "signOutConfirmTitle": "Sign Out",
     "signOutConfirmMsg": "Are you sure you want to sign out?",
     "devTools": "Developer Tools",
-    "retakeOnboarding": "Retake Onboarding"
+    "retakeOnboarding": "Retake Onboarding",
+    "weeklyBudgetTitle": "Weekly Budget",
+    "thisWeek": "This week",
+    "remaining": "Remaining",
+    "budgetOf": "{{spent}} / {{budget}}"
   },
   "settings": {
     "title": "Settings",
@@ -251,10 +274,32 @@
     "prep": "Prep",
     "cook": "Cook",
     "level": "Level",
+    "tags": "Tags",
     "searchPlaceholder": "Search your meals...",
     "noMealsSearch": "No meals found. Try a different search.",
     "noMealsYet": "No meals yet. Generate some with AI!",
     "generateWithAi": "Generate meals with AI",
-    "addSlotTitle": "Add {{slot}}"
+    "addSlotTitle": "Add {{slot}}",
+    "viewRecipe": "View full recipe",
+    "editTitle": "Edit Meal",
+    "moveTitle": "Move Meal",
+    "copyTitle": "Copy Meal",
+    "selectDate": "Select a date",
+    "selectSlot": "Select meal type",
+    "confirmMove": "Move here",
+    "confirmCopy": "Copy here",
+    "replaceNote": "The current meal in this slot will be replaced.",
+    "name": "Name",
+    "estimatedCost": "Estimated cost ({{currency}})",
+    "proteinG": "Protein (g)",
+    "carbsG": "Carbs (g)",
+    "fatG": "Fat (g)",
+    "prepMin": "Prep time (min)",
+    "cookMin": "Cook time (min)",
+    "tagsPlaceholder": "quick, vegetarian, budget...",
+    "saveError": "Failed to save changes.",
+    "easy": "Easy",
+    "medium": "Medium",
+    "hard": "Hard"
   }
 }

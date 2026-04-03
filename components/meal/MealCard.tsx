@@ -3,11 +3,17 @@
  * Reusable card component for displaying a single saved meal.
  *
  * Two variants:
- *   - Default: large card with image placeholder, description, and stats row.
- *   - Compact: slim row for use in lists (e.g. AddMealScreen, CalendarScreen).
+ *   - Default: large card with image placeholder, description, stats row,
+ *     difficulty indicator, and up to 4 tag chips.
+ *   - Compact: slim row with calories, cost, and difficulty label.
  *
  * Currency display uses `useCurrency()` so costs render in the user's chosen
  * currency rather than a hardcoded `$` symbol.
+ *
+ * Difficulty color mapping:
+ *   - easy   → emerald (#10B981)
+ *   - medium → amber   (#F59E0B)
+ *   - hard   → rose    (#F43F5E)
  */
 
 import { TouchableOpacity, View, Text } from 'react-native';
@@ -16,6 +22,13 @@ import { Meal } from '../../lib/types';
 import { Badge } from '../ui/Badge';
 import { SLOT_COLORS } from '../../lib/constants';
 import { useCurrency } from '../../hooks/useCurrency';
+
+// Maps difficulty to a display color. Used in both card variants.
+const DIFFICULTY_COLORS: Record<string, string> = {
+  easy: '#10B981',   // emerald
+  medium: '#F59E0B', // amber
+  hard: '#F43F5E',   // rose
+};
 
 /** Props for {@link MealCard}. */
 interface MealCardProps {
@@ -30,6 +43,10 @@ interface MealCardProps {
 /**
  * Displays a meal in either full-card or compact-row format.
  *
+ * Default variant renders: image placeholder, name, description, stats row
+ * (calories/time/cost/difficulty), meal type badges, and up to 4 tag chips.
+ * Compact variant renders: icon, name, calories · cost · difficulty subtitle.
+ *
  * @param props.meal - The meal to display.
  * @param props.onPress - Tap handler.
  * @param props.compact - If true, uses the compact row layout.
@@ -39,6 +56,7 @@ export function MealCard({ meal, onPress, compact = false }: MealCardProps) {
   const { format } = useCurrency();
 
   if (compact) {
+    const difficultyColor = DIFFICULTY_COLORS[meal.difficulty] ?? '#64748B';
     return (
       <TouchableOpacity
         onPress={onPress}
@@ -55,14 +73,24 @@ export function MealCard({ meal, onPress, compact = false }: MealCardProps) {
           >
             {meal.name}
           </Text>
-          <Text className="text-xs text-slate-500 dark:text-slate-400">
-            {meal.calories} cal · {format(meal.estimated_cost)}
-          </Text>
+          {/* Subtitle: calories · cost · difficulty */}
+          <View className="flex-row items-center flex-wrap">
+            <Text className="text-xs text-slate-500 dark:text-slate-400">
+              {meal.calories} cal · {format(meal.estimated_cost)} ·{' '}
+            </Text>
+            <Text className="text-xs font-medium" style={{ color: difficultyColor }}>
+              {meal.difficulty}
+            </Text>
+          </View>
         </View>
         <Ionicons name="chevron-forward" size={16} color="#94A3B8" />
       </TouchableOpacity>
     );
   }
+
+  const difficultyColor = DIFFICULTY_COLORS[meal.difficulty] ?? '#64748B';
+  // Show at most 4 tags to avoid overflowing the card
+  const visibleTags = meal.tags?.slice(0, 4) ?? [];
 
   return (
     <TouchableOpacity
@@ -85,7 +113,8 @@ export function MealCard({ meal, onPress, compact = false }: MealCardProps) {
             {meal.description}
           </Text>
         ) : null}
-        <View className="flex-row items-center gap-3">
+        {/* Stats row: calories · time · cost · difficulty */}
+        <View className="flex-row items-center gap-3 flex-wrap">
           <View className="flex-row items-center">
             <Ionicons name="flame-outline" size={14} color="#64748B" />
             <Text className="text-xs text-slate-500 dark:text-slate-400 ml-1">
@@ -104,8 +133,16 @@ export function MealCard({ meal, onPress, compact = false }: MealCardProps) {
               {format(meal.estimated_cost)}
             </Text>
           </View>
+          {/* Difficulty label coloured by severity */}
+          <View className="flex-row items-center">
+            <Ionicons name="speedometer-outline" size={14} color={difficultyColor} />
+            <Text className="text-xs font-medium ml-1" style={{ color: difficultyColor }}>
+              {meal.difficulty}
+            </Text>
+          </View>
         </View>
-        <View className="flex-row mt-3 gap-1.5">
+        {/* Meal type badges */}
+        <View className="flex-row mt-3 gap-1.5 flex-wrap">
           {meal.meal_type.map((type) => (
             <Badge
               key={type}
@@ -114,6 +151,21 @@ export function MealCard({ meal, onPress, compact = false }: MealCardProps) {
             />
           ))}
         </View>
+        {/* Tag chips — only render when the meal has tags */}
+        {visibleTags.length > 0 && (
+          <View className="flex-row mt-2 gap-1.5 flex-wrap">
+            {visibleTags.map((tag) => (
+              <View
+                key={tag}
+                className="bg-slate-100 dark:bg-slate-800 rounded-full px-2.5 py-0.5"
+              >
+                <Text className="text-xs text-slate-500 dark:text-slate-400">
+                  {tag}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
       </View>
     </TouchableOpacity>
   );

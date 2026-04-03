@@ -11,12 +11,38 @@ const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
 const GEMINI_URL =
   'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
+/**
+ * Extracts a JSON object from a raw Gemini text response.
+ *
+ * Despite responseMimeType:'application/json', Gemini 2.5 Flash sometimes
+ * prefixes the JSON with explanatory text or wraps it in markdown code fences.
+ * This function strips those wrappers using three successive strategies:
+ *   1. Strip a markdown code fence if the entire response is wrapped in one.
+ *   2. Return as-is if the (possibly stripped) text starts with `{`.
+ *   3. Slice from the first `{` to the last `}` to discard any preamble/postamble.
+ */
 function extractJSON(raw: string): string {
   let text = raw.trim();
-  const fenceMatch = text.match(/^```(?:json)?\s*\n?([\s\S]*?)\n?\s*```$/);
+
+  // Strategy 1: strip markdown code fence (anywhere in the text, not just anchored)
+  const fenceMatch = text.match(/```(?:json)?\s*\n?([\s\S]*?)\n?\s*```/);
   if (fenceMatch) {
     text = fenceMatch[1].trim();
   }
+
+  // Strategy 2: already clean JSON
+  if (text.startsWith('{')) {
+    return text;
+  }
+
+  // Strategy 3: extract outermost object — handles preamble/postamble prose
+  const start = text.indexOf('{');
+  const end = text.lastIndexOf('}');
+  if (start !== -1 && end > start) {
+    return text.slice(start, end + 1);
+  }
+
+  // No JSON object found — return raw text and let JSON.parse produce the error
   return text;
 }
 
@@ -40,6 +66,7 @@ function buildPrompt(input: ValidatedGenerateRequest): string {
     favorite_foods,
     foods_to_avoid,
     meals_per_day,
+    target_slot,
   } = input;
 
   // Map language codes to full names for the prompt instruction
@@ -72,6 +99,12 @@ function buildPrompt(input: ValidatedGenerateRequest): string {
   const days = timeframe === 'day' ? 1 : timeframe === 'week' ? 7 : 30;
   const totalMeals = slotsPerDay ? slotsPerDay * days : (timeframe === 'day' ? 4 : timeframe === 'week' ? 28 : 90);
 
+  // --- Single-meal regeneration instruction (when target_slot is set) ---
+  // Overrides normal count/distribution logic; used by the "generate new meal here" feature.
+  const singleMealInstruction = target_slot
+    ? `\nCRITICAL: Generate exactly 1 meal. The meal_type field MUST be "${target_slot}". Do not generate any other meal types.`
+    : '';
+
   // User-provided values are wrapped in <user_input> tags for prompt injection defense
   return `You are an expert nutritionist and budget meal planning assistant for university students.
 Your goal is to create meals that are tasty, high in protein, budget-friendly, and tailored to the user's needs.
@@ -94,13 +127,16 @@ ${favorite_foods && favorite_foods.length > 0 ? `- Favorite foods (incorporate t
 ${foods_to_avoid && foods_to_avoid.length > 0 ? `- Foods to avoid (never include these): <user_input>${foods_to_avoid.join(', ')}</user_input>` : ''}
 ${daily_calories ? `- Daily calorie target: <user_input>${daily_calories}</user_input> calories per day. Distribute across all meals for the day. ${calorieInstruction}` : ''}
 ${proteinTarget ? `- Daily protein target: ${proteinTarget}g per day. Distribute across all meals and prioritize protein-rich ingredients (eggs, chicken, beans, lentils, Greek yogurt, cottage cheese, canned tuna).` : ''}
-${slotsPerDay ? `- Meals per day: ${slotsPerDay} (distribute as a mix of breakfast, lunch, dinner, and snacks as appropriate)` : ''}
+${slotsPerDay && !target_slot ? `- Meals per day: ${slotsPerDay} (distribute as a mix of breakfast, lunch, dinner, and snacks as appropriate)` : ''}
 
-Generate ${totalMeals} meals covering the full ${timeframe}.
+Generate ${totalMeals} meals covering the full ${timeframe}.${singleMealInstruction}
 Keep meals simple, affordable, and student-friendly. Focus on cheap staples like rice, pasta, beans, eggs, frozen vegetables, oats, canned goods, and seasonal produce.
 
-FOR EACH MEAL SLOT, provide two options: a primary version and a quick fallback version.
-The fallback should be a simplified or no-cook alternative for the same meal slot that a student can make when short on time (under 10 minutes, minimal dishes).
+${timeframe === 'day'
+  ? `FOR EACH MEAL SLOT, you may optionally include a quick fallback — a no-cook or under-5-minute alternative for when the student is short on time.
+Keep fallbacks minimal: 3–5 ingredients, 1–2 instruction steps maximum.
+Omit the fallback field entirely for meals that are already quick (under 10 total minutes prep+cook).`
+  : `Do NOT include the "fallback" field on any meal. Omit it entirely.`}
 
 Return ONLY valid JSON with no markdown formatting, no code fences, just the raw JSON object in this exact format:
 {
@@ -122,10 +158,10 @@ Return ONLY valid JSON with no markdown formatting, no code fences, just the raw
       "difficulty": "easy",
       "tags": ["budget-friendly", "high-protein"],
       "fallback": {
-        "name": "Quick Fallback Name",
-        "description": "Brief 1-sentence description of the quick version",
+        "name": "Quick alternative name",
+        "description": "One sentence.",
         "ingredients": [{"name": "bread", "quantity": "2", "unit": "slices", "estimated_cost": 0.15}],
-        "instructions": [{"step": 1, "text": "Quick step"}],
+        "instructions": [{"step": 1, "text": "Assemble and eat"}],
         "calories": 350,
         "protein_g": 12,
         "carbs_g": 45,
@@ -148,7 +184,7 @@ estimated_cost values are in ${currency}.
 Ensure the total cost of all primary meals stays within the ${budget} ${currency} budget.
 ${daily_calories ? `Ensure meals for each day hit approximately ${daily_calories} calories in total.` : ''}
 ${proteinTarget ? `Ensure meals for each day provide approximately ${proteinTarget}g of protein in total.` : ''}
-Fallback meals should be cheaper or equal in cost to the primary version and still hit reasonable macro targets.
+When included, fallback meals should be cheaper or equal in cost to the primary version and still hit reasonable macro targets.
 Remember: ALL text fields (name, description, ingredient names, instruction text, tags) must be written in ${languageName}.`;
 }
 
@@ -319,7 +355,13 @@ Deno.serve(async (req) => {
     try {
       mealPlan = JSON.parse(extractJSON(textContent));
     } catch {
-      console.error('Failed to parse Gemini JSON response:', textContent.slice(0, 500));
+      // Log both ends of the content so truncation or preamble issues are visible
+      console.error(
+        'Failed to parse Gemini JSON. First 400 chars:',
+        textContent.slice(0, 400),
+        '\nLast 200 chars:',
+        textContent.slice(-200)
+      );
       return new Response(
         JSON.stringify({
           error: 'Failed to parse meal plan. Please try again.',

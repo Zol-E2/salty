@@ -237,6 +237,12 @@ export interface GenerateMealPlanRequest {
   foods_to_avoid?: string[];
   /** How many meals per day to generate (2–6). Defaults to 4. */
   meals_per_day?: number | null;
+  /**
+   * When set (alongside `meals_per_day: 1`), instructs Gemini to generate
+   * exactly one meal of this slot type. Used by the single-meal regeneration
+   * flow in the day view and generate preview.
+   */
+  target_slot?: MealSlotType;
 }
 
 /**
@@ -271,12 +277,6 @@ export interface GeneratedMealFallback {
   difficulty: 'easy' | 'medium' | 'hard';
   /** Free-form tags. */
   tags: string[];
-  /**
-   * Optional quick fallback meal for the same slot, returned by Gemini.
-   * When present, saved as a separate `meals` row with `is_fallback: true`
-   * and linked back to the primary via `fallback_meal_id`.
-   */
-  fallback?: GeneratedMealFallback;
 }
 
 /**
@@ -356,4 +356,11 @@ export interface GeneratedMeal {
   difficulty: 'easy' | 'medium' | 'hard';
   /** Free-form tags. */
   tags: string[];
+  /**
+   * Optional quick fallback meal for the same slot, returned by Gemini.
+   * When present, saved as a separate `meals` row with `is_fallback: true`
+   * and linked back to the primary meal via `fallback_meal_id`.
+   * Fallback meals never have their own fallbacks (no chains — enforced by DB constraint).
+   */
+  fallback?: GeneratedMealFallback;
 }

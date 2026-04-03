@@ -6,12 +6,15 @@
  * `GEMINI_API_KEY`). This file never touches the key; it just calls
  * `supabase.functions.invoke()` which attaches the user's JWT automatically.
  *
- * Monthly plan splitting:
- *   Gemini's context window limits a single monthly plan to cause timeouts on
- *   the edge function. To work around this, monthly requests are split into
- *   4 sequential weekly calls. The `day` field of each week's meals is offset
- *   by `week * 7` before being combined, so day numbers remain globally unique
- *   across the full 28-day span.
+ * Timeout-avoidance strategy:
+ *   Supabase Edge Functions have a wall-clock timeout (~60 s). To keep each
+ *   invocation small enough to complete reliably:
+ *   - Day plans: single call (4 meals max) — always safe.
+ *   - Week plans: single call (28 meals, no fallbacks) — fallbacks are
+ *     suppressed by the edge function for non-day timeframes.
+ *   - Month plans: 4 sequential weekly calls (each generating 28 meals, no
+ *     fallbacks). The `day` field of each week is offset by `week * 7` so
+ *     day numbers are globally sequential across the full 28-day span.
  */
 
 import { supabase } from './supabase';
@@ -49,6 +52,18 @@ async function callEdgeFunction(
 
     const status = (error as any).context?.status;
 
+    // Attempt to extract the server's own error message from the response body.
+    // The Supabase client stores the raw Response in error.context — reading it
+    // gives us the JSON payload our edge function returned (e.g. {error: "..."}).
+    let serverMessage: string | undefined;
+    try {
+      const body = await (error as any).context?.json?.();
+      if (typeof body?.error === 'string') serverMessage = body.error;
+      if (serverMessage) console.error('Edge function error body:', serverMessage);
+    } catch {
+      // Response body unreadable — fall through to status-based messages
+    }
+
     if (status === 401) {
       throw new Error('Your session has expired. Please sign in again.');
     }
@@ -67,11 +82,20 @@ async function callEdgeFunction(
 
     if (status === 400) {
       throw new Error(
-        'Invalid request. Please check your inputs and try again.'
+        serverMessage ?? 'Invalid request. Please check your inputs and try again.'
       );
     }
 
-    throw new Error('Failed to generate meal plan. Please try again.');
+    // 546 is returned by the Supabase gateway when the edge function is
+    // terminated before it can respond — most commonly a wall-clock timeout
+    // caused by a very large Gemini output (e.g. weekly plan with fallbacks).
+    if (status === 546) {
+      throw new Error(
+        'Meal generation timed out. Try a shorter timeframe or reduce meals per day and try again.'
+      );
+    }
+
+    throw new Error(serverMessage ?? 'Failed to generate meal plan. Please try again.');
   }
 
   if (!data?.meals) {
@@ -94,6 +118,7 @@ async function callEdgeFunction(
  *   calls (each with `budget / 4`), calling `onProgress` before each call so
  *   the UI can display "Generating week 1 of 4…". Meal `day` values from each
  *   week are offset by `week * 7` so they remain globally sequential.
+ *   Week and day plans are single calls.
  *
  * @param request - Meal generation parameters (validated with Zod before sending).
  * @param onProgress - Optional callback invoked before each chunk of a monthly plan.
@@ -117,6 +142,8 @@ export async function generateMealPlan(
 
   // Monthly plans are too large for a single edge function call (timeout risk).
   // Split into 4 weekly chunks with proportional budget, then combine results.
+  // Week and day plans are sent as single calls — fallbacks are suppressed by
+  // the edge function for non-day timeframes, keeping the response small.
   if (validatedRequest.timeframe === 'month') {
     const allMeals: GeneratedMeal[] = [];
     // Round to 2 decimal places to avoid floating-point budget drift
@@ -141,4 +168,44 @@ export async function generateMealPlan(
   }
 
   return callEdgeFunction(validatedRequest);
+}
+
+/**
+ * Generates a single replacement meal for a specific slot type.
+ *
+ * Used by:
+ *   - The "Generate new meal here" action in the day view action sheet.
+ *   - The "Regenerate this meal" button in the generate preview.
+ *
+ * Internally calls `callEdgeFunction` with `timeframe: 'day'`, `meals_per_day: 1`,
+ * and `target_slot` so Gemini produces exactly one meal of the requested type.
+ *
+ * @param request - Base generation parameters (budget, dietary restrictions, etc.)
+ *   merged with the target slot. Should include `target_slot`.
+ * @returns A single `GeneratedMeal` with `day: 1`.
+ * @throws {Error} If not authenticated or if the edge function fails.
+ */
+export async function generateSingleMeal(
+  request: GenerateMealPlanRequest
+): Promise<GeneratedMeal> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    throw new Error('You must be signed in to generate meals.');
+  }
+
+  // Force single-meal mode regardless of what the caller passed
+  const singleRequest: GenerateMealPlanRequest = {
+    ...request,
+    timeframe: 'day',
+    meals_per_day: 1,
+  };
+
+  const validated = validate(generateMealPlanSchema, singleRequest);
+  const meals = await callEdgeFunction(validated);
+
+  if (!meals.length) {
+    throw new Error('No meal was generated. Please try again.');
+  }
+
+  return meals[0];
 }

@@ -108,7 +108,7 @@ const INITIAL_PAGE = 1;
  */
 const TABS = [
   { name: 'calendar', title: 'Calendar', icon: 'calendar-outline' as const },
-  { name: 'generate', title: 'Generate', icon: 'sparkles-outline' as const },
+  { name: 'generate', title: 'Salty AI', icon: 'sparkles-outline' as const },
   { name: 'profile',  title: 'Profile',  icon: 'person-outline'   as const },
 ] as const;
 

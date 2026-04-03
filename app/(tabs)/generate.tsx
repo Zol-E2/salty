@@ -35,12 +35,33 @@ import { useTabControl } from '../../hooks/useTabControl';
 import { SaltShakerLoader } from '../../components/ui/SaltShakerLoader';
 import { GenerateForm } from '../../components/generate/GenerateForm';
 import { GeneratePreview } from '../../components/generate/GeneratePreview';
-import { generateMealPlan } from '../../lib/gemini';
+import { generateMealPlan, generateSingleMeal } from '../../lib/gemini';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../hooks/useAuth';
 import { useOnboardingStore } from '../../stores/onboardingStore';
 import { GenerateMealPlanRequest, GeneratedMeal, MealSlotType } from '../../lib/types';
 import { useQueryClient } from '@tanstack/react-query';
+
+// --- Constants ---
+
+/** Valid difficulty values enforced by the DB CHECK constraint on `meals`. */
+const VALID_DIFFICULTIES = ['easy', 'medium', 'hard'] as const;
+
+/**
+ * Clamps an AI-generated difficulty string to one of the three DB-valid values.
+ * Gemini occasionally returns values like 'moderate' or 'medium-hard' that would
+ * violate the `meals_difficulty_check` constraint — fall back to 'medium'.
+ *
+ * @param d - Raw difficulty string from Gemini output.
+ * @returns A valid difficulty value safe to insert into the DB.
+ */
+function safeDifficulty(d: string): 'easy' | 'medium' | 'hard' {
+  return (VALID_DIFFICULTIES as readonly string[]).includes(d)
+    ? (d as 'easy' | 'medium' | 'hard')
+    : 'medium';
+}
+
+// --- Screen component ---
 
 export default function GenerateScreen() {
   const { t } = useTranslation();
@@ -135,7 +156,8 @@ export default function GenerateScreen() {
               estimated_cost: meal.fallback.estimated_cost,
               prep_time_min: meal.fallback.prep_time_min,
               cook_time_min: meal.fallback.cook_time_min,
-              difficulty: meal.fallback.difficulty,
+              // Clamp to valid DB values — Gemini sometimes returns 'moderate' etc.
+              difficulty: safeDifficulty(meal.fallback.difficulty),
               // Fallback inherits the same slot as the primary
               meal_type: [meal.meal_type],
               tags: meal.fallback.tags || [],
@@ -168,7 +190,8 @@ export default function GenerateScreen() {
             estimated_cost: meal.estimated_cost,
             prep_time_min: meal.prep_time_min,
             cook_time_min: meal.cook_time_min,
-            difficulty: meal.difficulty,
+            // Clamp to valid DB values — Gemini sometimes returns 'moderate' etc.
+            difficulty: safeDifficulty(meal.difficulty),
             // Wrap in array: GeneratedMeal.meal_type is a single MealSlotType,
             // but Meal.meal_type is MealSlotType[] (a meal can suit multiple slots).
             meal_type: [meal.meal_type],
@@ -222,6 +245,30 @@ export default function GenerateScreen() {
     }
   };
 
+  /**
+   * Regenerates a single meal in the preview, replacing it in-place while
+   * preserving all other meals. The `day` value is kept from the original so
+   * the replaced meal stays on the same calendar day.
+   *
+   * @param meal - The meal to replace; its `meal_type` is passed as `target_slot`
+   *               so the AI generates a meal for the correct slot.
+   */
+  const handleRegenerateMeal = async (meal: GeneratedMeal) => {
+    if (!lastRequest) return;
+    const replacement = await generateSingleMeal({
+      ...lastRequest,
+      timeframe: 'day',
+      meals_per_day: 1,
+      target_slot: meal.meal_type,
+    });
+    // Splice the replacement in at the same position, preserving the original `day`
+    setGeneratedMeals((prev) =>
+      prev
+        ? prev.map((m) => (m === meal ? { ...replacement, day: meal.day } : m))
+        : prev
+    );
+  };
+
   const handleDiscard = () => {
     setGeneratedMeals(null);
   };
@@ -238,7 +285,7 @@ export default function GenerateScreen() {
         <View className="flex-row items-center mb-1">
           <Ionicons name="sparkles" size={22} color="#10B981" />
           <Text className="text-2xl font-bold text-slate-900 dark:text-white ml-2">
-            {generatedMeals ? t('generate.titlePreview') : t('generate.title')}
+            {generatedMeals ? t('generate.titlePreview') : 'Salty AI'}
           </Text>
         </View>
         <Text className="text-sm text-slate-500 dark:text-slate-400">
@@ -262,6 +309,7 @@ export default function GenerateScreen() {
             onDiscard={handleDiscard}
             onTryAgain={handleTryAgain}
             saving={saving}
+            onRegenerate={handleRegenerateMeal}
           />
         ) : (
           <GenerateForm onSubmit={handleGenerate} loading={loading} />

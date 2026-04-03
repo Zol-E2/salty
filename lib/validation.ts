@@ -202,8 +202,12 @@ export const generateMealPlanSchema = z.object({
   // favorite_foods / foods_to_avoid: max 30 items each, each item sanitized
   favorite_foods: z.array(safeFoodString).max(30).optional(),
   foods_to_avoid: z.array(safeFoodString).max(30).optional(),
-  // meals_per_day matches the DB CHECK constraint (2–6).
-  meals_per_day: z.number().int().min(2, 'At least 2 meals per day').max(6, 'At most 6 meals per day').nullable().optional(),
+  // meals_per_day: 1 is allowed for single-meal regeneration (generateSingleMeal).
+  // The DB CHECK constraint (2–6) is on the profiles table user setting, not on this request.
+  meals_per_day: z.number().int().min(1, 'At least 1 meal per day').max(6, 'At most 6 meals per day').nullable().optional(),
+  // target_slot: when set alongside meals_per_day=1, forces Gemini to generate
+  // a single meal of this type (used by single-meal regeneration in day view).
+  target_slot: z.enum(VALID_MEAL_TYPES).optional(),
 });
 
 // ---------------------------------------------------------------------------
@@ -278,6 +282,28 @@ export const mealCreateSchema = z.object({
   is_fallback: z.boolean().default(false),
   // UUID of the associated fallback meal (primary meals only; null for fallbacks).
   fallback_meal_id: z.string().uuid().nullable().optional(),
+});
+
+// ---------------------------------------------------------------------------
+// Meal update (core fields only — excludes ingredients and instructions)
+// ---------------------------------------------------------------------------
+
+/**
+ * Validates a partial meal update payload for the edit-meal screen.
+ * Only the fields the user can edit from the core-fields form are accepted.
+ * Ingredient lists and instruction steps are excluded (read-only).
+ */
+export const mealUpdateSchema = z.object({
+  name: z.string().min(1, 'Meal name is required').max(200).optional(),
+  estimated_cost: z.number().min(0).max(10000).optional(),
+  calories: z.number().int().min(0).max(50000).optional(),
+  protein_g: z.number().min(0).max(5000).optional(),
+  carbs_g: z.number().min(0).max(5000).optional(),
+  fat_g: z.number().min(0).max(5000).optional(),
+  prep_time_min: z.number().int().min(0).max(1440).optional(),
+  cook_time_min: z.number().int().min(0).max(1440).optional(),
+  difficulty: z.enum(VALID_DIFFICULTIES).optional(),
+  tags: z.array(z.string().max(50)).max(20).optional(),
 });
 
 // ---------------------------------------------------------------------------
